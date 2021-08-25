@@ -1,0 +1,47 @@
+#deploy
+apiVersion: apps/v1
+kind: Deployment
+#kind: StatefulSet
+metadata:
+  name: gejian-search-web
+  namespace: gejian-business
+spec:
+  selector:
+    matchLabels:
+      app: gejian-search-web
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: gejian-search-web
+    spec:
+      imagePullSecrets:
+      - name: pipeline-docker-registry
+      containers:
+      - name: gejian-search-web
+        image: ${CICD_IMAGE}:${CICD_EXECUTION_SEQUENCE}
+        env:
+        - name: NACOS_HOST
+          value: "gejian-register.gejian-basic"
+        - name: NACOS_PORT
+          value: "8848"
+        - name: NACOS_NAMESPACE
+          value: "f8007455-737c-4308-947c-55faeac4732c"
+        - name: NACOS_USERNAME
+          value: "gejian_cloud"
+        - name: NACOS_PASSWORD
+          value: "jeT7z0oKzbgEAjwq"
+        - name: NACOS_SERVICE_GROUP
+          value: "test"
+        - name: SPRING_PROFILE_ACTIVE
+          value: "test"
+        ports:
+        - containerPort: 9877
+        resources:
+          limits:
+            cpu: 0
+            memory: 0
+          requests:
+            cpu: 0
+            memory: 0
+

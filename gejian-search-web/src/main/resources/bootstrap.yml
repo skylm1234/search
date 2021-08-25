@@ -1,0 +1,24 @@
+server:
+  port: 9877
+
+spring:
+  application:
+    name: gejian-search-web
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_HOST:nacos.gejiantech.com}:${NACOS_PORT:80}
+        namespace: ${NACOS_NAMESPACE:d1617075-3149-4385-91bd-bba9481d53d2}
+        username: ${NACOS_USERNAME:gejian_cloud}
+        password: ${NACOS_PASSWORD:jeT7z0oKzbgEAjwq}
+        group: ${NACOS_SERVICE_GROUP:dev}
+      config:
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        namespace: ${spring.cloud.nacos.discovery.namespace}
+        username: ${spring.cloud.nacos.discovery.username}
+        password: ${spring.cloud.nacos.discovery.password}
+        file-extension: yml
+        shared-configs:
+          - gejian-cloud-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
+  profiles:
+    active: ${SPRING_PROFILE_ACTIVE:dev}

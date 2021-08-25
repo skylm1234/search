@@ -3,48 +3,44 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.example</groupId>
-	<artifactId>demo</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<packaging>jar</packaging>
-
-	<name>demo</name>
-	<description>Demo project for Spring Boot</description>
-
+	<artifactId>gejian-search</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<modules>
+		<module>gejian-search-common</module>
+		<module>gejian-search-web</module>
+	</modules>
+	<packaging>pom</packaging>
+	<name>gejian-search</name>
+	<description>gejian-search</description>
 	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.0.1.RELEASE</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<groupId>com.gejian</groupId>
+		<artifactId>gejian-cloud-dependencies-parent</artifactId>
+		<version>1.0.0</version>
 	</parent>
 
 	<properties>
+		<gejian-common-core.version>1.0.2</gejian-common-core.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
 	</properties>
 
+	<!--core 工具类-->
 	<dependencies>
+		<!--Lombok-->
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.20</version>
 		</dependency>
 
+		<!--core 工具类-->
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
+			<groupId>com.gejian</groupId>
+			<artifactId>gejian-common-core</artifactId>
+			<version>${gejian-common-core.version}</version>
 		</dependency>
+
 	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
-
 
 </project>

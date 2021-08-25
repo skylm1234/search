@@ -1,10 +1,9 @@
-FROM maven:3-jdk-8-alpine
+FROM registry.cn-zhangjiakou.aliyuncs.com/gejian_zhouqiang/java:1.8-full
 
-WORKDIR /usr/src/app
+COPY ./gejian-search-web/target/gejian-search-web*.jar /app.jar
 
-COPY . /usr/src/app
-RUN mvn package
+ENV TZ=Asia/Shanghai JAVA_OPTS="-Xms256m -Xmx256m -Djava.security.egd=file:/dev/./urandom"
 
-ENV PORT 5000
-EXPOSE $PORT
-CMD [ "sh", "-c", "mvn -Dserver.port=${PORT} spring-boot:run" ]
+EXPOSE 9634
+
+CMD java -jar  ${JAVA_OPTS} /app.jar

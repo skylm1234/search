@@ -1,0 +1,26 @@
+stages:
+- name: Maven编译
+  steps:
+  - runScriptConfig:
+      image: registry.cn-zhangjiakou.aliyuncs.com/gejian_zhouqiang/maven:1.0.6
+      shellScript: |-
+        # 编译
+        mvn clean package -DskipTests=true
+        # 上传到私服
+        mvn deploy
+        cd ./gejian-search-web
+        mvn compile
+        mvn package spring-boot:repackage
+        ls -la ./target/
+- name: 构建镜像
+  steps:
+  - publishImageConfig:
+      dockerfilePath: ./Dockerfile
+      buildContext: .
+      tag: gejian-search-web:${CICD_EXECUTION_SEQUENCE}
+- name: 部署
+  steps:
+  - applyYamlConfig:
+      path: ./deployment.yaml
+timeout: 60
+notification: {}
