@@ -1,8 +1,8 @@
 package com.gejian.search.web.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gejian.search.common.dto.SubstanceSearchDTO;
-import com.gejian.search.common.index.SubstanceOnlineIndex;
-import org.springframework.data.domain.Page;
+import com.gejian.substance.client.dto.online.SubstanceOnlineAndCountDTO;
 
 /**
  * @author ：lijianghuai
@@ -11,6 +11,6 @@ import org.springframework.data.domain.Page;
  */
 public interface SubstanceSearchService {
 
-    Page<SubstanceOnlineIndex> search(SubstanceSearchDTO substanceSearchDTO);
+    Page<SubstanceOnlineAndCountDTO> search(SubstanceSearchDTO substanceSearchDTO);
 
 }

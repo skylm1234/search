@@ -1,26 +1,33 @@
 package com.gejian.search.web.service.impl;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.gejian.common.core.constant.SecurityConstants;
+import com.gejian.common.core.util.R;
 import com.gejian.search.common.constant.SubstanceOnlineIndexConstant;
 import com.gejian.search.common.dto.SubstanceSearchDTO;
 import com.gejian.search.common.enums.SearchTypeEnum;
 import com.gejian.search.common.index.SubstanceOnlineIndex;
 import com.gejian.search.web.service.SubstanceSearchService;
-import com.google.common.collect.Lists;
+import com.gejian.substance.client.dto.online.SubstanceOnlineAndCountDTO;
+import com.gejian.substance.client.dto.online.rpc.RpcOnlineSearchDTO;
+import com.gejian.substance.client.feign.RemoteSubstanceService;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -44,10 +51,17 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
     @Autowired
     private ElasticsearchRestTemplate elasticsearchRestTemplate;
 
+    @Autowired
+    private RestHighLevelClient restHighLevelClient;
+
+    @Autowired
+    private RemoteSubstanceService remoteSubstanceService;
+
     @Override
-    public Page<SubstanceOnlineIndex> search(SubstanceSearchDTO substanceSearchDTO) {
+    public Page<SubstanceOnlineAndCountDTO> search(SubstanceSearchDTO substanceSearchDTO) {
+
         if(!StringUtils.hasText(substanceSearchDTO.getContent())){
-            return new PageImpl<>(Lists.newArrayList());
+            return new Page<>();
         }
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         if(substanceSearchDTO.getSearchType() == null || substanceSearchDTO.getSearchType() == SearchTypeEnum.VIDEO){
@@ -72,10 +86,13 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
         nativeSearchQuery.setPageable(pageRequest);
         SearchHits<SubstanceOnlineIndex> searchHits = elasticsearchRestTemplate.search(nativeSearchQuery, SubstanceOnlineIndex.class);
         if(searchHits.getTotalHits() <= 0){
-            return new PageImpl<>(Lists.newArrayList(),pageRequest,0);
+            return new Page<>();
         }
         List<SubstanceOnlineIndex> contents = searchHits.stream().map(SearchHit::getContent).collect(Collectors.toList());
-        return new PageImpl<>(contents,pageRequest,searchHits.getTotalHits());
+        RpcOnlineSearchDTO rpcOnlineSearchDTO = new RpcOnlineSearchDTO();
+        rpcOnlineSearchDTO.setIds(contents.stream().map(SubstanceOnlineIndex::getId).collect(Collectors.toList()));
+        final R<List<SubstanceOnlineAndCountDTO>> listR = remoteSubstanceService.searchOnlineAndCountByIds(rpcOnlineSearchDTO, SecurityConstants.FROM_IN);
+        return new Page<SubstanceOnlineAndCountDTO>(substanceSearchDTO.getCurrent(),substanceSearchDTO.getSize(),searchHits.getTotalHits()).setRecords(listR.getData());
     }
 
     private PageRequest page(SubstanceSearchDTO substanceSearchDTO){
@@ -94,5 +111,18 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
             }
         }
         return pageRequest;
+    }
+
+
+
+
+    @Scheduled(cron = "0 0/2 * * * *")
+    public void keepESAlive() {
+        try {
+            restHighLevelClient.info(RequestOptions.DEFAULT);
+            log.info("keep es alive");
+        } catch (IOException e) {
+            log.error("keep es alive error!" ,e);
+        }
     }
 }

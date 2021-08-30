@@ -1,6 +1,7 @@
 package com.gejian.search.web.controller.app;
 
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gejian.common.core.util.R;
 import com.gejian.search.common.dto.SubstanceSearchDTO;
 import com.gejian.search.web.service.SubstanceSearchService;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 /**
- * @Author:chen
+ * @Author:lijianghuai
  * @Date: 2021/8/4 16:13
  */
 @RestController
@@ -27,7 +28,7 @@ public class SubstanceSearchAppController {
 
 	@GetMapping("")
 	@ApiOperation("全局搜索视频，无需认证")
-	public R<org.springframework.data.domain.Page> search(SubstanceSearchDTO substanceSearchDTO){
+	public R<Page> search(SubstanceSearchDTO substanceSearchDTO){
 		return R.ok(substanceSearchService.search(substanceSearchDTO));
 	}
 }
