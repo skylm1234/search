@@ -8,7 +8,7 @@ import com.gejian.search.common.dto.SubstanceSearchDTO;
 import com.gejian.search.common.enums.SearchTypeEnum;
 import com.gejian.search.common.index.SubstanceOnlineIndex;
 import com.gejian.search.web.service.SubstanceSearchService;
-import com.gejian.substance.client.dto.online.SubstanceOnlineAndCountDTO;
+import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
 import com.gejian.substance.client.dto.online.rpc.RpcOnlineSearchDTO;
 import com.gejian.substance.client.feign.RemoteSubstanceService;
 import lombok.extern.slf4j.Slf4j;
@@ -58,7 +58,7 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
     private RemoteSubstanceService remoteSubstanceService;
 
     @Override
-    public Page<SubstanceOnlineAndCountDTO> search(SubstanceSearchDTO substanceSearchDTO) {
+    public Page<OnlineSearchDTO> search(SubstanceSearchDTO substanceSearchDTO) {
 
         if(!StringUtils.hasText(substanceSearchDTO.getContent())){
             return new Page<>();
@@ -91,8 +91,8 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
         List<SubstanceOnlineIndex> contents = searchHits.stream().map(SearchHit::getContent).collect(Collectors.toList());
         RpcOnlineSearchDTO rpcOnlineSearchDTO = new RpcOnlineSearchDTO();
         rpcOnlineSearchDTO.setIds(contents.stream().map(SubstanceOnlineIndex::getId).collect(Collectors.toList()));
-        final R<List<SubstanceOnlineAndCountDTO>> listR = remoteSubstanceService.searchOnlineAndCountByIds(rpcOnlineSearchDTO, SecurityConstants.FROM_IN);
-        return new Page<SubstanceOnlineAndCountDTO>(substanceSearchDTO.getCurrent(),substanceSearchDTO.getSize(),searchHits.getTotalHits()).setRecords(listR.getData());
+        final R<List<OnlineSearchDTO>> listR = remoteSubstanceService.searchOnlineAndCountByIds(rpcOnlineSearchDTO, SecurityConstants.FROM_IN);
+        return new Page<OnlineSearchDTO>(substanceSearchDTO.getCurrent(),substanceSearchDTO.getSize(),searchHits.getTotalHits()).setRecords(listR.getData());
     }
 
     private PageRequest page(SubstanceSearchDTO substanceSearchDTO){
