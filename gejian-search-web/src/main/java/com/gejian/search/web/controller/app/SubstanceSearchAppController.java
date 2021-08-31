@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gejian.common.core.util.R;
 import com.gejian.search.common.dto.SubstanceSearchDTO;
 import com.gejian.search.web.service.SubstanceSearchService;
+import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,7 @@ public class SubstanceSearchAppController {
 
 	@GetMapping("")
 	@ApiOperation("全局搜索视频，无需认证")
-	public R<Page> search(SubstanceSearchDTO substanceSearchDTO){
+	public R<Page<OnlineSearchDTO>> search(SubstanceSearchDTO substanceSearchDTO){
 		return R.ok(substanceSearchService.search(substanceSearchDTO));
 	}
 }
