@@ -7,6 +7,7 @@ import com.gejian.search.common.constant.SubstanceOnlineIndexConstant;
 import com.gejian.search.common.dto.SubstanceSearchDTO;
 import com.gejian.search.common.enums.SearchTypeEnum;
 import com.gejian.search.common.index.SubstanceOnlineIndex;
+import com.gejian.search.web.service.RedisSearchService;
 import com.gejian.search.web.service.SubstanceSearchService;
 import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
 import com.gejian.substance.client.dto.online.rpc.RpcOnlineSearchDTO;
@@ -57,12 +58,16 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
     @Autowired
     private RemoteSubstanceService remoteSubstanceService;
 
+    @Autowired
+    private RedisSearchService redisSearchService;
+
     @Override
     public Page<OnlineSearchDTO> search(SubstanceSearchDTO substanceSearchDTO) {
 
         if(!StringUtils.hasText(substanceSearchDTO.getContent())){
             return new Page<>();
         }
+        redisSearchService.setHistorySearch(substanceSearchDTO.getContent());
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         if(substanceSearchDTO.getSearchType() == null || substanceSearchDTO.getSearchType() == SearchTypeEnum.VIDEO){
             boolQueryBuilder.must(QueryBuilders.multiMatchQuery(substanceSearchDTO.getContent(), FIELD_VIDEO_TITLE, SubstanceOnlineIndexConstant.FIELD_VIDEO_INTRODUCE));
@@ -92,6 +97,7 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
         RpcOnlineSearchDTO rpcOnlineSearchDTO = new RpcOnlineSearchDTO();
         rpcOnlineSearchDTO.setIds(contents.stream().map(SubstanceOnlineIndex::getId).collect(Collectors.toList()));
         final R<List<OnlineSearchDTO>> listR = remoteSubstanceService.searchOnlineAndCountByIds(rpcOnlineSearchDTO, SecurityConstants.FROM_IN);
+        redisSearchService.setHotSearch(substanceSearchDTO.getContent());
         return new Page<OnlineSearchDTO>(substanceSearchDTO.getCurrent(),substanceSearchDTO.getSize(),searchHits.getTotalHits()).setRecords(listR.getData());
     }
 
