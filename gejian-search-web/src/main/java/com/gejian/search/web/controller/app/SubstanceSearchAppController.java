@@ -3,7 +3,7 @@ package com.gejian.search.web.controller.app;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gejian.common.core.util.R;
-import com.gejian.search.common.dto.HistorySearchDTO;
+import com.gejian.search.common.dto.MyHistorySearchQueryDTO;
 import com.gejian.search.common.dto.PopularSearchDTO;
 import com.gejian.search.common.dto.SubstanceSearchDTO;
 import com.gejian.search.web.service.RedisSearchService;
@@ -11,8 +11,6 @@ import com.gejian.search.web.service.SubstanceSearchService;
 import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import org.apache.ibatis.annotations.Delete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,15 +49,15 @@ public class SubstanceSearchAppController {
     }
 
     @PostMapping("/history")
-    @ApiOperation("获取历史搜索")
-    public R<Set<String>> getHistory(
-            @RequestBody @Valid HistorySearchDTO historySearchDTO) {
+    @ApiOperation("获取我的历史搜索")
+    public R<Set<String>> getMyHistorySearch(
+            @RequestBody @Valid MyHistorySearchQueryDTO historySearchDTO) {
         return R.ok(redisSearchService.getHistorySearch(historySearchDTO.getSize(), historySearchDTO.getCurrent()));
     }
 
     @PostMapping("/delete/history")
-    @ApiOperation("删除历史搜索")
-    public R deleteHistory(@RequestParam("content") String content) {
+    @ApiOperation("删除我的历史搜索")
+    public R<Void> deleteMyHistorySearch(@RequestParam("content") String content) {
         redisSearchService.deleteHistorySearch(content);
         return R.ok();
     }

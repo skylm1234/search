@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
  * @date 2021-09-08
  */
 @Data
-@ApiModel("管理后台查询dto")
-public class PopularBackendSearchDTO extends BasePageQuery {
+@ApiModel("管理后台查询高频关键字dto")
+public class PopularSearchBackendQueryDTO extends BasePageQuery {
 
     @ApiModelProperty("开始时间")
     private LocalDateTime startedAt;

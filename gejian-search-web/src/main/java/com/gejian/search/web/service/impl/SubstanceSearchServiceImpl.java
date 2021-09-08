@@ -3,7 +3,6 @@ package com.gejian.search.web.service.impl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gejian.common.core.constant.SecurityConstants;
 import com.gejian.common.core.util.R;
-import com.gejian.search.common.constant.SubstanceOnlineIndexConstant;
 import com.gejian.search.common.dto.SubstanceSearchDTO;
 import com.gejian.search.common.enums.SearchTypeEnum;
 import com.gejian.search.common.index.SubstanceOnlineIndex;
@@ -33,11 +32,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_CLASSIFY_ID;
-import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_CREATE_USER_NICKNAME;
-import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_DELETED;
-import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_VIDEO_LENGTH;
-import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_VIDEO_TITLE;
+import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.*;
 
 /**
  * @author ：lijianghuai
@@ -70,7 +65,7 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
         redisSearchService.setHistorySearch(substanceSearchDTO.getContent());
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         if(substanceSearchDTO.getSearchType() == null || substanceSearchDTO.getSearchType() == SearchTypeEnum.VIDEO){
-            boolQueryBuilder.must(QueryBuilders.multiMatchQuery(substanceSearchDTO.getContent(), FIELD_VIDEO_TITLE, SubstanceOnlineIndexConstant.FIELD_VIDEO_INTRODUCE));
+            boolQueryBuilder.must(QueryBuilders.multiMatchQuery(substanceSearchDTO.getContent(), FIELD_VIDEO_TITLE,FIELD_VIDEO_INTRODUCE));
         }else{
             boolQueryBuilder.must(QueryBuilders.matchQuery(FIELD_CREATE_USER_NICKNAME,substanceSearchDTO.getContent()));
         }

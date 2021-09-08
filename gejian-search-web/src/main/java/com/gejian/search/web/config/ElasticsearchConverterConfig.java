@@ -26,7 +26,6 @@ public class ElasticsearchConverterConfig extends ElasticsearchConfigurationSupp
     public ElasticsearchCustomConversions elasticsearchCustomConversions() {
         List<Converter> converters = new ArrayList<>();
         converters.add(LongToLocalDateTimeConverter.INSTANCE);
-        converters.add(LocalDateTimeToLongConverter.INSTANCE);
         return new ElasticsearchCustomConversions(converters);
     }
     /**
@@ -46,14 +45,4 @@ public class ElasticsearchConverterConfig extends ElasticsearchConfigurationSupp
         }
     }
 
-    enum LocalDateTimeToLongConverter implements Converter<LocalDateTime,Long > {
-        /**
-         *
-         */
-        INSTANCE;
-        @Override
-        public Long convert(LocalDateTime localDateTime) {
-            return localDateTime.toEpochSecond(ZoneOffset.ofHours(8));
-        }
-    }
 }
