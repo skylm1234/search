@@ -96,7 +96,7 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
         List<SubstanceOnlineIndex> contents = searchHits.stream().map(SearchHit::getContent).collect(Collectors.toList());
         RpcOnlineSearchDTO rpcOnlineSearchDTO = new RpcOnlineSearchDTO();
         rpcOnlineSearchDTO.setIds(contents.stream().map(SubstanceOnlineIndex::getId).collect(Collectors.toList()));
-        final R<List<OnlineSearchDTO>> listR = remoteSubstanceService.searchOnlineAndCountByIds(rpcOnlineSearchDTO, SecurityConstants.FROM_IN);
+        final R<List<OnlineSearchDTO>> listR = remoteSubstanceService.search(rpcOnlineSearchDTO, SecurityConstants.FROM_IN);
         redisSearchService.setHotSearch(substanceSearchDTO.getContent());
         return new Page<OnlineSearchDTO>(substanceSearchDTO.getCurrent(),substanceSearchDTO.getSize(),searchHits.getTotalHits()).setRecords(listR.getData());
     }
