@@ -6,5 +6,7 @@ package com.gejian.search.common.constant;
  * @description：
  */
 public interface BasicConstant {
-	String IK_ANALYZER = "ik_max_word";
+	String IK_MAX_WORD = "ik_max_word";
+
+	String IK_SMART = "ik_smart";
 }

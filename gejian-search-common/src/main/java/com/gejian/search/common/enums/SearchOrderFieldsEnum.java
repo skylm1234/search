@@ -66,10 +66,6 @@ public enum SearchOrderFieldsEnum {
 	 */
 	public Optional<String> fieldMapping(){
 		Optional<SearchOrderFieldsEnum> fieldsEnum = Arrays.stream(SearchOrderFieldsEnum.values()).filter(e -> this.name().equals(e.val)).findFirst();
-		if(fieldsEnum.isPresent()){
-			return Optional.ofNullable(fieldsEnum.get().filedMapping);
-		}else{
-			return Optional.empty();
-		}
+		return fieldsEnum.map(searchOrderFieldsEnum -> searchOrderFieldsEnum.filedMapping);
 	}
 }

@@ -15,7 +15,7 @@ import lombok.Data;
 @Data
 public class SubstanceSearchDTO {
 
-	@ApiModelProperty(value = "搜索类型;综合/游戏都为video，用户为user，默认为video")
+	@ApiModelProperty(value = "搜索类型;综合/游戏都为VIDEO，用户为USER，默认为VIDEO")
 	private SearchTypeEnum searchType;
 
 	@ApiModelProperty(value = "搜索正文",required = true,name = "content")
@@ -30,7 +30,7 @@ public class SubstanceSearchDTO {
 	@ApiModelProperty(value = "视频时长小于等于")
 	private Integer videoLengthLt;
 
-	@ApiModelProperty(value = "排序字段,default(默认)，newest(最新)，play_most(播放)，comment_most(评论)，bullet_most(弹幕)，collect_most(收藏)，forward_most(转发)")
+	@ApiModelProperty(value = "排序字段,DEFAULT(默认)，NEWEST(最新)，PLAY_MOST(播放)，COMMENT_MOST(评论)，BULLET_MOST(弹幕)，COLLECT_MOST(收藏)，FORWARD_MOST(转发)")
 	private SearchOrderFieldsEnum orderField;
 
 	@ApiModelProperty(value = "当前页，默认为1", name = "current")

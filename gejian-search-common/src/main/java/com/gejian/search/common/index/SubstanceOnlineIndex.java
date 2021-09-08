@@ -45,10 +45,10 @@ public class SubstanceOnlineIndex {
 	@Id
 	private Long id;
 
-	@Field(type = FieldType.Text,name = FIELD_VIDEO_TITLE,analyzer = BasicConstant.IK_ANALYZER)
+	@Field(type = FieldType.Text,name = FIELD_VIDEO_TITLE,analyzer = BasicConstant.IK_MAX_WORD)
 	private String videoTitle;
 
-	@Field(type = FieldType.Text,name = FIELD_VIDEO_INTRODUCE,analyzer = BasicConstant.IK_ANALYZER)
+	@Field(type = FieldType.Text,name = FIELD_VIDEO_INTRODUCE,analyzer = BasicConstant.IK_MAX_WORD)
 	private String videoIntroduce;
 
 	@Field(type = FieldType.Long,name = FIELD_VIDEO_LENGTH)
@@ -63,7 +63,7 @@ public class SubstanceOnlineIndex {
 	@Field(type = FieldType.Keyword,name = FIELD_CREATE_USER_NAME)
 	private String createUserName;
 
-	@Field(type = FieldType.Text,name = FIELD_CREATE_USER_NICKNAME,analyzer = BasicConstant.IK_ANALYZER)
+	@Field(type = FieldType.Text,name = FIELD_CREATE_USER_NICKNAME,analyzer = BasicConstant.IK_MAX_WORD)
 	private String createUserNickname;
 
 	@Field(type = FieldType.Long,name = FIELD_PLAY_COUNT)
