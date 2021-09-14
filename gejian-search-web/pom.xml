@@ -15,6 +15,11 @@
         <jasypt.version>2.1.0</jasypt.version>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>com.gejian</groupId>
+            <artifactId>gejian-common-core</artifactId>
+            <version>${gejian-common-core.version}</version>
+        </dependency>
         <!--日志处理-->
         <dependency>
             <groupId>com.gejian</groupId>
@@ -26,11 +31,6 @@
             <groupId>com.gejian</groupId>
             <artifactId>gejian-common-swagger</artifactId>
             <version>1.0.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.gejian</groupId>
-            <artifactId>gejian-common-core</artifactId>
         </dependency>
         <dependency>
             <groupId>com.gejian</groupId>
