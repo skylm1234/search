@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 
 @DisplayName("service测试")
-public class ServiceTest extends BaseTest{
+public class HistoryServiceTest extends BaseTest{
 
     @Autowired
     private HistorySearchBackendService historySearchBackendService;

@@ -70,7 +70,9 @@ public class HistorySearchBackendServiceImpl implements HistorySearchBackendServ
             ParsedStringTerms popular = aggregations.get("popular");
             List<? extends Terms.Bucket> buckets = popular.getBuckets();
             List<PopularSearchBackendResultDTO> popularBackendResultDTOList = sub(buckets, popularBackendSearchDTO).stream().map(bucket -> PopularSearchBackendResultDTO.builder().keyword(bucket.getKeyAsString()).count(bucket.getDocCount()).build()).collect(Collectors.toList());
-            return new Page<PopularSearchBackendResultDTO>(popularBackendSearchDTO.getCurrent(),popularBackendSearchDTO.getSize(),buckets.size()).setRecords(popularBackendResultDTOList);
+            int total = buckets.size();
+            buckets = null;
+            return new Page<PopularSearchBackendResultDTO>(popularBackendSearchDTO.getCurrent(),popularBackendSearchDTO.getSize(),total).setRecords(popularBackendResultDTOList);
         }
         return new Page<>();
     }

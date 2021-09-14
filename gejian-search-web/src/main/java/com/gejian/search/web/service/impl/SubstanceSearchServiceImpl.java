@@ -1,19 +1,20 @@
 package com.gejian.search.web.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.gejian.common.core.acautomation.ACAutomationSearch;
 import com.gejian.common.core.constant.SecurityConstants;
 import com.gejian.common.core.util.R;
 import com.gejian.search.common.dto.SubstanceSearchDTO;
 import com.gejian.search.common.enums.SearchTypeEnum;
 import com.gejian.search.common.index.SubstanceOnlineIndex;
+import com.gejian.search.web.executor.AsyncExecutor;
+import com.gejian.search.web.service.HistorySearchBackendService;
 import com.gejian.search.web.service.RedisSearchService;
 import com.gejian.search.web.service.SubstanceSearchService;
 import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
 import com.gejian.substance.client.dto.online.rpc.RpcOnlineSearchDTO;
 import com.gejian.substance.client.feign.RemoteSubstanceService;
 import lombok.extern.slf4j.Slf4j;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +24,9 @@ import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -48,13 +47,13 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
     private ElasticsearchRestTemplate elasticsearchRestTemplate;
 
     @Autowired
-    private RestHighLevelClient restHighLevelClient;
-
-    @Autowired
     private RemoteSubstanceService remoteSubstanceService;
 
     @Autowired
     private RedisSearchService redisSearchService;
+
+    @Autowired
+    private HistorySearchBackendService historySearchBackendService;
 
     @Override
     public Page<OnlineSearchDTO> search(SubstanceSearchDTO substanceSearchDTO) {
@@ -62,7 +61,11 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
         if(!StringUtils.hasText(substanceSearchDTO.getContent())){
             return new Page<>();
         }
-        redisSearchService.setHistorySearch(substanceSearchDTO.getContent());
+        ACAutomationSearch.SearchResult result = ACAutomationSearch.getInstance().search(substanceSearchDTO.getContent());
+        if(result.anyContains()){
+            return new Page<>();
+        }
+        AsyncExecutor.execute(() -> redisSearchService.setHistorySearch(substanceSearchDTO.getContent()));
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         if(substanceSearchDTO.getSearchType() == null || substanceSearchDTO.getSearchType() == SearchTypeEnum.VIDEO){
             boolQueryBuilder.must(QueryBuilders.multiMatchQuery(substanceSearchDTO.getContent(), FIELD_VIDEO_TITLE,FIELD_VIDEO_INTRODUCE));
@@ -92,7 +95,7 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
         RpcOnlineSearchDTO rpcOnlineSearchDTO = new RpcOnlineSearchDTO();
         rpcOnlineSearchDTO.setIds(contents.stream().map(SubstanceOnlineIndex::getId).collect(Collectors.toList()));
         final R<List<OnlineSearchDTO>> listR = remoteSubstanceService.search(rpcOnlineSearchDTO, SecurityConstants.FROM_IN);
-        redisSearchService.setHotSearch(substanceSearchDTO.getContent());
+        AsyncExecutor.execute(() ->  historySearchBackendService.insert(substanceSearchDTO.getContent()));
         return new Page<OnlineSearchDTO>(substanceSearchDTO.getCurrent(),substanceSearchDTO.getSize(),searchHits.getTotalHits()).setRecords(listR.getData());
     }
 
@@ -117,13 +120,5 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
 
 
 
-    @Scheduled(cron = "0 0/2 * * * *")
-    public void keepESAlive() {
-        try {
-            restHighLevelClient.info(RequestOptions.DEFAULT);
-            log.info("keep es alive");
-        } catch (IOException e) {
-            log.error("keep es alive error!" ,e);
-        }
-    }
+
 }

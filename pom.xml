@@ -19,28 +19,30 @@
 	</parent>
 
 	<properties>
-		<gejian-common-core.version>1.0.2</gejian-common-core.version>
+		<gejian-common-core.version>1.0.3</gejian-common-core.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
 	</properties>
 
 	<!--core 工具类-->
-	<dependencies>
-		<!--Lombok-->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<version>1.18.20</version>
-		</dependency>
+	<dependencyManagement>
+		<dependencies>
+			<!--Lombok-->
+			<dependency>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok</artifactId>
+				<version>1.18.20</version>
+			</dependency>
 
-		<!--core 工具类-->
-		<dependency>
-			<groupId>com.gejian</groupId>
-			<artifactId>gejian-common-core</artifactId>
-			<version>${gejian-common-core.version}</version>
-		</dependency>
+			<!--core 工具类-->
+			<dependency>
+				<groupId>com.gejian</groupId>
+				<artifactId>gejian-common-core</artifactId>
+				<version>${gejian-common-core.version}</version>
+			</dependency>
 
-	</dependencies>
+		</dependencies>
+	</dependencyManagement>
 
 </project>

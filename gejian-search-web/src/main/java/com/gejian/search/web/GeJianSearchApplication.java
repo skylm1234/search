@@ -20,4 +20,7 @@ public class GeJianSearchApplication {
 		SpringApplication.run(GeJianSearchApplication.class, args);
 	}
 
+
+
+
 }

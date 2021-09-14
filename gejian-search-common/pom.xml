@@ -21,6 +21,10 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.gejian</groupId>
+            <artifactId>gejian-common-core</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
