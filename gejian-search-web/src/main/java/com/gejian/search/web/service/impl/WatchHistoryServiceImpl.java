@@ -7,6 +7,7 @@ import com.gejian.common.security.service.GeJianUser;
 import com.gejian.common.security.util.SecurityUtils;
 import com.gejian.search.common.constant.WatchHistoryIndexConstant;
 import com.gejian.search.common.dto.WatchHistoryQueryDTO;
+import com.gejian.search.common.enums.WatchTypeEnum;
 import com.gejian.search.common.index.WatchHistoryIndex;
 import com.gejian.search.web.service.WatchHistoryService;
 import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
@@ -63,7 +64,7 @@ public class WatchHistoryServiceImpl implements WatchHistoryService {
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         GeJianUser user = SecurityUtils.getUser();
         boolQueryBuilder.must(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_USER_ID,user.getId()));
-        boolQueryBuilder.must(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_TYPE,watchHistoryQueryDTO.getWatchTypeEnum().name()));
+        boolQueryBuilder.must(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_TYPE, WatchTypeEnum.VIDEO.name()));
         boolQueryBuilder.must(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_DELETED, Boolean.FALSE));
         PageRequest pageRequest = PageRequest.of((watchHistoryQueryDTO.getCurrent() - 1) * watchHistoryQueryDTO.getSize(), watchHistoryQueryDTO.getSize(),Sort.by(Sort.Direction.DESC,WatchHistoryIndexConstant.FIELD_CREATE_TIME));
         NativeSearchQuery nativeSearchQuery = new NativeSearchQuery(boolQueryBuilder);
