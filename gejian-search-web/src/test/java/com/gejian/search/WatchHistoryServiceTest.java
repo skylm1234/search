@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gejian.search.common.dto.WatchHistoryQueryDTO;
 import com.gejian.search.web.service.WatchHistoryService;
 import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +25,9 @@ public class WatchHistoryServiceTest extends BaseTest{
     @Test
     public void should_success_when_query_history(){
         WatchHistoryQueryDTO watchHistoryQueryDTO = new WatchHistoryQueryDTO();
+        watchHistoryQueryDTO.setCurrent(1);
+        watchHistoryQueryDTO.setSize(10);
         Page<OnlineSearchDTO> onlineSearchDTOPage = watchHistoryService.searchSubstance(watchHistoryQueryDTO);
-        System.out.println(onlineSearchDTOPage.getTotal());
-        onlineSearchDTOPage.getRecords().forEach(recored -> {
-            System.out.println(recored.getId());
-        });
+        Assertions.assertTrue(onlineSearchDTOPage.getTotal() > 0);
     }
 }
