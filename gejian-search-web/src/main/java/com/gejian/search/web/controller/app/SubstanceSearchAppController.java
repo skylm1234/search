@@ -2,13 +2,17 @@ package com.gejian.search.web.controller.app;
 
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.gejian.common.core.annotation.CurrentUser;
 import com.gejian.common.core.util.R;
+import com.gejian.common.security.service.GeJianUser;
 import com.gejian.search.common.dto.MyHistorySearchQueryDTO;
 import com.gejian.search.common.dto.PopularSearchDTO;
 import com.gejian.search.common.dto.SubstanceSearchDTO;
+import com.gejian.search.common.dto.UserSearchDTO;
 import com.gejian.search.web.service.RedisSearchService;
 import com.gejian.search.web.service.SubstanceSearchService;
 import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
+import com.gejian.substance.client.dto.video.UserSearchVideoViewDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,5 +64,11 @@ public class SubstanceSearchAppController {
     public R<Void> deleteMyHistorySearch(@RequestParam("content") String content) {
         redisSearchService.deleteHistorySearch(content);
         return R.ok();
+    }
+
+    @PostMapping("/userVideo")
+    @ApiOperation("搜索用户视频")
+    public R<List<UserSearchVideoViewDTO>> searchUserVideo(@RequestBody @Valid UserSearchDTO userSearchDTO, @CurrentUser GeJianUser geJianUser) {
+        return R.ok(substanceSearchService.searchUserVideo(userSearchDTO, geJianUser));
     }
 }
