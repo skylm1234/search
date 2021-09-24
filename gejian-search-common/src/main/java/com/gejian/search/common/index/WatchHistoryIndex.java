@@ -33,10 +33,10 @@ public class WatchHistoryIndex {
     @Field(type = FieldType.Keyword,name = FIELD_TYPE)
     private String type;
 
-    @Field(type = FieldType.Date,name = FIELD_CREATE_TIME,format = { DateFormat.date_optional_time, DateFormat.epoch_millis,DateFormat.epoch_second })
+    @Field(type = FieldType.Date,name = FIELD_CREATE_TIME,format = { DateFormat.date_time_no_millis, DateFormat.epoch_millis,DateFormat.epoch_second })
     private Long createTime;
 
-    @Field(type = FieldType.Date,name = FIELD_UPDATE_TIME,format = { DateFormat.date_optional_time, DateFormat.epoch_millis,DateFormat.epoch_second })
+    @Field(type = FieldType.Date,name = FIELD_UPDATE_TIME,format = { DateFormat.date_time_no_millis, DateFormat.epoch_millis,DateFormat.epoch_second })
     private Long updateTime;
 
     @Field(type = FieldType.Long,name = FIELD_USER_ID)
