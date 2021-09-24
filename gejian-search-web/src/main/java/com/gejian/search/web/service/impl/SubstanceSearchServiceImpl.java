@@ -1,9 +1,11 @@
 package com.gejian.search.web.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.gejian.common.core.acautomation.ACAutomationSearch;
 import com.gejian.common.core.constant.SecurityConstants;
 import com.gejian.common.core.util.R;
+import com.gejian.common.core.util.acautomation.ACAutomationSearch;
+import com.gejian.common.security.service.GeJianUser;
+import com.gejian.search.common.constant.UserVideoIndexConstant;
 import com.gejian.search.common.dto.SubstanceSearchDTO;
 import com.gejian.search.common.dto.UserSearchDTO;
 import com.gejian.search.common.enums.SearchTypeEnum;
