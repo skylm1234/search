@@ -1,20 +1,28 @@
 package com.gejian.search.web.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.gejian.common.core.acautomation.ACAutomationSearch;
 import com.gejian.common.core.constant.SecurityConstants;
 import com.gejian.common.core.util.R;
+import com.gejian.common.core.util.acautomation.ACAutomationSearch;
+import com.gejian.common.security.service.GeJianUser;
+import com.gejian.search.common.constant.UserVideoIndexConstant;
+import com.gejian.search.common.constant.WatchHistoryIndexConstant;
 import com.gejian.search.common.dto.SubstanceSearchDTO;
+import com.gejian.search.common.dto.UserSearchDTO;
 import com.gejian.search.common.enums.SearchTypeEnum;
 import com.gejian.search.common.index.SubstanceOnlineIndex;
+import com.gejian.search.common.index.UserVideoIndex;
 import com.gejian.search.web.executor.AsyncExecutor;
 import com.gejian.search.web.service.HistorySearchBackendService;
 import com.gejian.search.web.service.RedisSearchService;
 import com.gejian.search.web.service.SubstanceSearchService;
 import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
 import com.gejian.substance.client.dto.online.rpc.RpcOnlineSearchDTO;
+import com.gejian.substance.client.dto.video.UserSearchVideoViewDTO;
+import com.gejian.substance.client.dto.video.app.AppUserSearchVideoDTO;
 import com.gejian.substance.client.feign.RemoteSubstanceService;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +32,12 @@ import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -58,67 +69,93 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
     @Override
     public Page<OnlineSearchDTO> search(SubstanceSearchDTO substanceSearchDTO) {
 
-        if(!StringUtils.hasText(substanceSearchDTO.getContent())){
+        if (!StringUtils.hasText(substanceSearchDTO.getContent())) {
             return new Page<>();
         }
         ACAutomationSearch.SearchResult result = ACAutomationSearch.getInstance().search(substanceSearchDTO.getContent());
-        if(result.anyContains()){
+        if (result.anyContains()) {
             return new Page<>();
         }
         AsyncExecutor.execute(() -> redisSearchService.setHistorySearch(substanceSearchDTO.getContent()));
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
-        if(substanceSearchDTO.getSearchType() == null || substanceSearchDTO.getSearchType() == SearchTypeEnum.VIDEO){
-            boolQueryBuilder.must(QueryBuilders.multiMatchQuery(substanceSearchDTO.getContent(), FIELD_VIDEO_TITLE,FIELD_VIDEO_INTRODUCE));
-        }else{
-            boolQueryBuilder.must(QueryBuilders.matchQuery(FIELD_CREATE_USER_NICKNAME,substanceSearchDTO.getContent()));
+        if (substanceSearchDTO.getSearchType() == null || substanceSearchDTO.getSearchType() == SearchTypeEnum.VIDEO) {
+            boolQueryBuilder.must(QueryBuilders.multiMatchQuery(substanceSearchDTO.getContent(), FIELD_VIDEO_TITLE, FIELD_VIDEO_INTRODUCE));
+        } else {
+            boolQueryBuilder.must(QueryBuilders.matchQuery(FIELD_CREATE_USER_NICKNAME, substanceSearchDTO.getContent()));
         }
-        if(substanceSearchDTO.getVideoLengthGt() != null || substanceSearchDTO.getVideoLengthLt() != null){
-            if(substanceSearchDTO.getVideoLengthGt() != null){
+        if (substanceSearchDTO.getVideoLengthGt() != null || substanceSearchDTO.getVideoLengthLt() != null) {
+            if (substanceSearchDTO.getVideoLengthGt() != null) {
                 boolQueryBuilder.must(QueryBuilders.rangeQuery(FIELD_VIDEO_LENGTH).gte(substanceSearchDTO.getVideoLengthGt() * 60 * 1000));
             }
-            if(substanceSearchDTO.getVideoLengthLt() != null){
+            if (substanceSearchDTO.getVideoLengthLt() != null) {
                 boolQueryBuilder.must(QueryBuilders.rangeQuery(FIELD_VIDEO_LENGTH).lte(substanceSearchDTO.getVideoLengthLt() * 60 * 1000));
             }
         }
-        if(substanceSearchDTO.getClassifyId() != null){
-            boolQueryBuilder.must(QueryBuilders.termQuery(FIELD_CLASSIFY_ID,substanceSearchDTO.getClassifyId()));
+        if (substanceSearchDTO.getClassifyId() != null) {
+            boolQueryBuilder.must(QueryBuilders.termQuery(FIELD_CLASSIFY_ID, substanceSearchDTO.getClassifyId()));
         }
-        boolQueryBuilder.must(QueryBuilders.termQuery(FIELD_DELETED,false));
+        boolQueryBuilder.must(QueryBuilders.termQuery(FIELD_DELETED, false));
         NativeSearchQuery nativeSearchQuery = new NativeSearchQuery(boolQueryBuilder);
         PageRequest pageRequest = page(substanceSearchDTO);
         nativeSearchQuery.setPageable(pageRequest);
         SearchHits<SubstanceOnlineIndex> searchHits = elasticsearchRestTemplate.search(nativeSearchQuery, SubstanceOnlineIndex.class);
-        if(searchHits.getTotalHits() <= 0){
+        if (searchHits.getTotalHits() <= 0) {
             return new Page<>();
         }
         List<SubstanceOnlineIndex> contents = searchHits.stream().map(SearchHit::getContent).collect(Collectors.toList());
         RpcOnlineSearchDTO rpcOnlineSearchDTO = new RpcOnlineSearchDTO();
         rpcOnlineSearchDTO.setIds(contents.stream().map(SubstanceOnlineIndex::getId).collect(Collectors.toList()));
         final R<List<OnlineSearchDTO>> listR = remoteSubstanceService.search(rpcOnlineSearchDTO, SecurityConstants.FROM_IN);
-        AsyncExecutor.execute(() ->  historySearchBackendService.insert(substanceSearchDTO.getContent()));
-        return new Page<OnlineSearchDTO>(substanceSearchDTO.getCurrent(),substanceSearchDTO.getSize(),searchHits.getTotalHits()).setRecords(listR.getData());
+        AsyncExecutor.execute(() -> historySearchBackendService.insert(substanceSearchDTO.getContent()));
+        return new Page<OnlineSearchDTO>(substanceSearchDTO.getCurrent(), substanceSearchDTO.getSize(), searchHits.getTotalHits()).setRecords(listR.getData());
     }
 
-    private PageRequest page(SubstanceSearchDTO substanceSearchDTO){
-        if(substanceSearchDTO.getCurrent() == null){
+    @Override
+    public List<UserSearchVideoViewDTO> searchUserVideo(UserSearchDTO userSearchDTO, GeJianUser geJianUser) {
+        if (ObjectUtils.isEmpty(userSearchDTO.getKeywork())) {
+            return new ArrayList<UserSearchVideoViewDTO>();
+        }
+
+        NativeSearchQuery nativeSearchQuery = new NativeSearchQueryBuilder()
+                // 模糊查询
+                .withQuery(QueryBuilders.fuzzyQuery(UserVideoIndexConstant.FIELD_VIDEO_TITLE, userSearchDTO.getKeywork()))
+                .withQuery(QueryBuilders.fuzzyQuery(UserVideoIndexConstant.FIELD_VIDEO_INTRODUCE, userSearchDTO.getKeywork()))
+                .withQuery(QueryBuilders.termQuery(UserVideoIndexConstant.CREATE_USER_ID, geJianUser.getId()))
+                // 分页
+                .withPageable(PageRequest.of((userSearchDTO.getCurrent() - 1) * userSearchDTO.getSize(), userSearchDTO.getSize()))
+                .build();
+        SearchHits<UserVideoIndex> searchHits = elasticsearchRestTemplate.search(nativeSearchQuery, UserVideoIndex.class);
+        if (searchHits.getTotalHits() <= 0) {
+            return new ArrayList<UserSearchVideoViewDTO>();
+        }
+
+        List<Long> videoIds = searchHits.stream().map(SearchHit::getContent).collect(Collectors.toList()).stream().map(userVideoIndex -> {
+            return userVideoIndex.getId();
+        }).collect(Collectors.toList());
+
+        AppUserSearchVideoDTO appUserSearchVideoDTO = new AppUserSearchVideoDTO();
+        appUserSearchVideoDTO.setVideoIds(videoIds);
+
+        return remoteSubstanceService.searchUserVideo(appUserSearchVideoDTO, SecurityConstants.FROM_IN).getData();
+    }
+
+    private PageRequest page(SubstanceSearchDTO substanceSearchDTO) {
+        if (substanceSearchDTO.getCurrent() == null) {
             substanceSearchDTO.setCurrent(1);
         }
-        if(substanceSearchDTO.getSize() == null){
+        if (substanceSearchDTO.getSize() == null) {
             substanceSearchDTO.setSize(10);
         }
 
         PageRequest pageRequest = PageRequest.of((substanceSearchDTO.getCurrent() - 1) * substanceSearchDTO.getSize(), substanceSearchDTO.getSize());
-        if(substanceSearchDTO.getOrderField() != null){
+        if (substanceSearchDTO.getOrderField() != null) {
             Optional<String> fieldMapping = substanceSearchDTO.getOrderField().fieldMapping();
-            if(fieldMapping.isPresent()){
-                pageRequest = pageRequest.withSort(Sort.Direction.DESC,fieldMapping.get());
+            if (fieldMapping.isPresent()) {
+                pageRequest = pageRequest.withSort(Sort.Direction.DESC, fieldMapping.get());
             }
         }
         return pageRequest;
     }
-
-
-
 
 
 }
