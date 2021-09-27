@@ -66,9 +66,4 @@ public class SubstanceSearchAppController {
         return R.ok();
     }
 
-    @PostMapping("/userVideo")
-    @ApiOperation("搜索用户视频")
-    public R<List<UserSearchVideoViewDTO>> searchUserVideo(@RequestBody @Valid UserSearchDTO userSearchDTO, @CurrentUser GeJianUser geJianUser) {
-        return R.ok(substanceSearchService.searchUserVideo(userSearchDTO, geJianUser));
-    }
 }
