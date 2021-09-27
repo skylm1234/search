@@ -31,7 +31,7 @@ public class SearchHistoryIndex {
 	@Field(type = FieldType.Text,name = FIELD_CONTENT,analyzer  = BasicConstant.IK_SMART,searchAnalyzer = BasicConstant.IK_SMART,fielddata = true)
 	private String content;
 
-	@Field(type = FieldType.Date,name = FIELD_CREATE_TIME,format = { DateFormat.date_optional_time, DateFormat.epoch_millis,DateFormat.epoch_second })
+	@Field(type = FieldType.Date,name = FIELD_CREATE_TIME,format = { DateFormat.date_time_no_millis, DateFormat.epoch_millis,DateFormat.epoch_second })
 	private Long createTime;
 
 }

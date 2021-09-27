@@ -21,7 +21,6 @@ import com.gejian.substance.client.dto.video.UserSearchVideoViewDTO;
 import com.gejian.substance.client.dto.video.app.AppUserSearchVideoDTO;
 import com.gejian.substance.client.feign.RemoteSubstanceService;
 import lombok.extern.slf4j.Slf4j;
-import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,7 +111,7 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
     @Override
     public List<UserSearchVideoViewDTO> searchUserVideo(UserSearchDTO userSearchDTO, GeJianUser geJianUser) {
         if (ObjectUtils.isEmpty(userSearchDTO.getKeywork())) {
-            return new ArrayList<UserSearchVideoViewDTO>();
+            return new ArrayList<>();
         }
 
         NativeSearchQuery nativeSearchQuery = new NativeSearchQueryBuilder()
@@ -125,12 +124,10 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
                 .build();
         SearchHits<UserVideoIndex> searchHits = elasticsearchRestTemplate.search(nativeSearchQuery, UserVideoIndex.class);
         if (searchHits.getTotalHits() <= 0) {
-            return new ArrayList<UserSearchVideoViewDTO>();
+            return new ArrayList<>();
         }
 
-        List<Long> videoIds = searchHits.stream().map(SearchHit::getContent).collect(Collectors.toList()).stream().map(userVideoIndex -> {
-            return userVideoIndex.getId();
-        }).collect(Collectors.toList());
+        List<Long> videoIds = searchHits.stream().map(SearchHit::getContent).collect(Collectors.toList()).stream().map(UserVideoIndex::getId).collect(Collectors.toList());
 
         AppUserSearchVideoDTO appUserSearchVideoDTO = new AppUserSearchVideoDTO();
         appUserSearchVideoDTO.setVideoIds(videoIds);

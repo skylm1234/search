@@ -87,12 +87,12 @@ public class SubstanceOnlineIndex {
 	@Field(type = FieldType.Boolean,name = FIELD_DELETED)
 	private boolean deleted;
 
-	@Field(type = FieldType.Date,name = FIELD_CREATE_TIME,format = { DateFormat.date_optional_time, DateFormat.epoch_millis,DateFormat.epoch_second })
+	@Field(type = FieldType.Date,name = FIELD_CREATE_TIME,format = { DateFormat.date_time_no_millis, DateFormat.epoch_millis,DateFormat.epoch_second })
 	private LocalDateTime createTime;
 
-	@Field(type = FieldType.Date,name = FIELD_UPDATE_TIME,format = { DateFormat.date_optional_time, DateFormat.epoch_millis,DateFormat.epoch_second })
+	@Field(type = FieldType.Date,name = FIELD_UPDATE_TIME,format = { DateFormat.date_time_no_millis, DateFormat.epoch_millis,DateFormat.epoch_second })
 	private LocalDateTime updateTime;
 
-	@Field(type = FieldType.Date,name = FIELD_COUNT_UPDATE_TIME,format = { DateFormat.date_optional_time, DateFormat.epoch_millis,DateFormat.epoch_second })
+	@Field(type = FieldType.Date,name = FIELD_COUNT_UPDATE_TIME,format = { DateFormat.date_time_no_millis, DateFormat.epoch_millis,DateFormat.epoch_second })
 	private LocalDateTime countUpdateTime;
 }
