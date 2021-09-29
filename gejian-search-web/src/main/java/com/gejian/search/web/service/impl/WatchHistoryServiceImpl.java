@@ -91,6 +91,7 @@ public class WatchHistoryServiceImpl implements WatchHistoryService {
             watchHistoryResponseDTO.setTitle(watchHistoryIndex.getTitle());
             watchHistoryResponseDTO.setSubstanceId(watchHistoryIndex.getSubstanceId());
             watchHistoryResponseDTO.setHistoryId(watchHistoryIndex.getHistoryId());
+            watchHistoryResponseDTO.setWatchedAt(watchHistoryIndex.getCreateTime());
             return watchHistoryResponseDTO;
         }).collect(Collectors.toList());
         return new Page<WatchHistoryResponseDTO>(watchHistoryQueryDTO.getCurrent(),watchHistoryQueryDTO.getSize(),searchHits.getTotalHits()).setRecords(watchHistoryResponseDTOs);

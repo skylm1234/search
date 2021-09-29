@@ -1,5 +1,6 @@
 package com.gejian.search.common.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.gejian.common.minio.annotation.BucketName;
 import com.gejian.common.minio.annotation.FileUrl;
 import com.gejian.common.minio.annotation.ObjectName;
@@ -38,24 +39,20 @@ public class WatchHistoryResponseDTO {
     private Long authorUserId;
 
     @ApiModelProperty("视频/直播 观看时间")
-    private LocalDateTime createTime;
-
-
-    @ApiModelProperty("视频/直播 更新时间")
-    private LocalDateTime updateTime;
-
+    private LocalDateTime watchedAt;
 
     @ApiModelProperty("视频/直播 封面url")
     @FileUrl
     private String coverFileUrl;
 
-
     @ApiModelProperty("视频/直播 封面文件名")
     @ObjectName
+    @JsonIgnore
     private String coverFileName;
 
     @ApiModelProperty("视频/直播 封面桶名")
     @BucketName
+    @JsonIgnore
     private String coverBucketName;
 
     @ApiModelProperty("历史记录id")
