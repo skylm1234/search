@@ -41,6 +41,9 @@ public class WatchHistoryResponseDTO {
     @ApiModelProperty("视频/直播 观看时间")
     private LocalDateTime watchedAt;
 
+    @ApiModelProperty("类型，ROOM:直播;VIDEO:视频 ")
+    private String type;
+
     @ApiModelProperty("视频/直播 封面url")
     @FileUrl
     private String coverFileUrl;
