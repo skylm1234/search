@@ -3,8 +3,8 @@ package com.gejian.search.web.controller.app;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gejian.common.core.util.R;
 import com.gejian.search.common.dto.WatchHistoryQueryDTO;
+import com.gejian.search.common.dto.WatchHistoryResponseDTO;
 import com.gejian.search.web.service.WatchHistoryService;
-import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +43,7 @@ public class WatchHistoryController {
 
     @PostMapping("")
     @ApiOperation("播放历史记录")
-    public R<Page<OnlineSearchDTO>> search(@Valid @RequestBody  WatchHistoryQueryDTO watchHistoryQueryDTO){
+    public R<Page<WatchHistoryResponseDTO>> search(@Valid @RequestBody  WatchHistoryQueryDTO watchHistoryQueryDTO){
         return R.ok(watchHistoryService.search(watchHistoryQueryDTO));
     }
 }

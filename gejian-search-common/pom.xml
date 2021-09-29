@@ -25,6 +25,12 @@
             <groupId>com.gejian</groupId>
             <artifactId>gejian-common-core</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.gejian</groupId>
+            <artifactId>gejian-common-minio</artifactId>
+            <version>1.0.3</version>
+        </dependency>
     </dependencies>
 
 </project>

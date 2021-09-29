@@ -1,17 +1,16 @@
 package com.gejian.search.web.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.gejian.common.core.constant.SecurityConstants;
-import com.gejian.common.core.util.R;
+import com.gejian.common.minio.annotation.MinioResponse;
 import com.gejian.common.security.service.GeJianUser;
 import com.gejian.common.security.util.SecurityUtils;
 import com.gejian.search.common.constant.WatchHistoryIndexConstant;
 import com.gejian.search.common.dto.WatchHistoryQueryDTO;
+import com.gejian.search.common.dto.WatchHistoryResponseDTO;
 import com.gejian.search.common.enums.WatchTypeEnum;
 import com.gejian.search.common.index.WatchHistoryIndex;
 import com.gejian.search.web.service.WatchHistoryService;
 import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
-import com.gejian.substance.client.dto.online.rpc.RpcOnlineSearchDTO;
 import com.gejian.substance.client.feign.RemoteSubstanceService;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -55,8 +54,9 @@ public class WatchHistoryServiceImpl implements WatchHistoryService {
         return new Page<>();
     }
 
+    @MinioResponse
     @Override
-    public Page<OnlineSearchDTO> search(WatchHistoryQueryDTO watchHistoryQueryDTO) {
+    public Page<WatchHistoryResponseDTO> search(WatchHistoryQueryDTO watchHistoryQueryDTO) {
         if(WatchTypeEnum.ROOM.name().equals(watchHistoryQueryDTO.getType())){
             return new Page<>();
         }
@@ -76,9 +76,20 @@ public class WatchHistoryServiceImpl implements WatchHistoryService {
         if(searchHits.isEmpty()){
             return new Page<>();
         }
-        RpcOnlineSearchDTO rpcOnlineSearchDTO = new RpcOnlineSearchDTO();
-        rpcOnlineSearchDTO.setIds(searchHits.stream().map(hit -> hit.getContent().getSubstanceId()).collect(Collectors.toList()));
-        final R<List<OnlineSearchDTO>> listR = remoteSubstanceService.search(rpcOnlineSearchDTO, SecurityConstants.FROM_IN);
-        return new Page<OnlineSearchDTO>(watchHistoryQueryDTO.getCurrent(),watchHistoryQueryDTO.getSize(),searchHits.getTotalHits()).setRecords(listR.getData());
+        List<WatchHistoryResponseDTO> watchHistoryResponseDTOs = searchHits.stream().map(hit -> {
+            WatchHistoryIndex watchHistoryIndex = hit.getContent();
+            WatchHistoryResponseDTO watchHistoryResponseDTO = new WatchHistoryResponseDTO();
+            watchHistoryResponseDTO.setCoverFileName(watchHistoryIndex.getCoverFileName());
+            watchHistoryResponseDTO.setCoverBucketName(watchHistoryIndex.getCoverBucketName());
+            watchHistoryResponseDTO.setAuthorUserId(watchHistoryIndex.getAuthorId());
+            watchHistoryResponseDTO.setAuthorNickname(watchHistoryIndex.getAuthorNickName());
+            watchHistoryResponseDTO.setAuthorUsername(watchHistoryIndex.getAuthorUsername());
+            watchHistoryResponseDTO.setRoomId(watchHistoryIndex.getRoomId());
+            watchHistoryResponseDTO.setTitle(watchHistoryIndex.getTitle());
+            watchHistoryResponseDTO.setSubstanceId(watchHistoryIndex.getSubstanceId());
+            return watchHistoryResponseDTO;
+        }).collect(Collectors.toList());
+        return new Page<WatchHistoryResponseDTO>(watchHistoryQueryDTO.getCurrent(),watchHistoryQueryDTO.getSize(),searchHits.getTotalHits()).setRecords(watchHistoryResponseDTOs);
     }
+
 }

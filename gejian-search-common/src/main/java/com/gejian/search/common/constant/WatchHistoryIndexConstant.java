@@ -25,6 +25,16 @@ public interface WatchHistoryIndexConstant {
 
     String FIELD_USER_ID = "user_id";
 
+    String FIELD_AUTHOR_ID = "author_id";
+
+    String FIELD_AUTHOR_USERNAME = "author_username";
+
+    String FIELD_AUTHOR_NICKNAME = "author_nickname";
+
+    String FIELD_COVER_FILE_NAME = "cover_file_name";
+
+    String FIELD_COVER_BUCKET_NAME = "cover_bucket_name";
+
     String FIELD_RECORD_TYPE = "record_type";
 
     /** * 创建时间 */
