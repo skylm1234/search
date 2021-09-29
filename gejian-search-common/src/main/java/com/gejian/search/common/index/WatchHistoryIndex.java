@@ -21,6 +21,7 @@ import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_COVER_FILE_NAME;
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_CREATE_TIME;
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_DELETED;
+import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_HISTORY_ID;
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_RECORD_TYPE;
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_ROOM_ID;
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_SUBSTANCE_ID;
@@ -58,6 +59,9 @@ public class WatchHistoryIndex {
 
     @Field(type = FieldType.Long,name = FIELD_AUTHOR_ID)
     private Long authorId;
+
+    @Field(type = FieldType.Long,name = FIELD_HISTORY_ID)
+    private Long historyId;
 
     @Field(type = FieldType.Keyword,name = FIELD_AUTHOR_NICKNAME)
     private String authorNickName;

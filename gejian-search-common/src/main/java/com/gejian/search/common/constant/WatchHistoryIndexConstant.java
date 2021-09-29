@@ -37,6 +37,8 @@ public interface WatchHistoryIndexConstant {
 
     String FIELD_RECORD_TYPE = "record_type";
 
+    String FIELD_HISTORY_ID = "history_id";
+
     /** * 创建时间 */
     String FIELD_CREATE_TIME = "create_time";
 

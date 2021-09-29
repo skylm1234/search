@@ -1,6 +1,7 @@
 package com.gejian.search.web.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.gejian.search.common.dto.WatchHistoryDeleteDTO;
 import com.gejian.search.common.dto.WatchHistoryQueryDTO;
 import com.gejian.search.common.dto.WatchHistoryResponseDTO;
 import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
@@ -33,4 +34,6 @@ public interface WatchHistoryService {
      * @return
      */
     Page<WatchHistoryResponseDTO> search(WatchHistoryQueryDTO watchHistoryQueryDTO);
+
+    void delete(WatchHistoryDeleteDTO watchHistoryDeleteDTO);
 }

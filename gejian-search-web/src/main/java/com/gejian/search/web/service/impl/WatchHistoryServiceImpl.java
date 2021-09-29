@@ -1,16 +1,19 @@
 package com.gejian.search.web.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.gejian.common.core.constant.SecurityConstants;
 import com.gejian.common.minio.annotation.MinioResponse;
 import com.gejian.common.security.service.GeJianUser;
 import com.gejian.common.security.util.SecurityUtils;
 import com.gejian.search.common.constant.WatchHistoryIndexConstant;
+import com.gejian.search.common.dto.WatchHistoryDeleteDTO;
 import com.gejian.search.common.dto.WatchHistoryQueryDTO;
 import com.gejian.search.common.dto.WatchHistoryResponseDTO;
 import com.gejian.search.common.enums.WatchTypeEnum;
 import com.gejian.search.common.index.WatchHistoryIndex;
 import com.gejian.search.web.service.WatchHistoryService;
 import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
+import com.gejian.substance.client.dto.playRecord.SubstancePlayRecordDeleteDTO;
 import com.gejian.substance.client.feign.RemoteSubstanceService;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -87,9 +90,18 @@ public class WatchHistoryServiceImpl implements WatchHistoryService {
             watchHistoryResponseDTO.setRoomId(watchHistoryIndex.getRoomId());
             watchHistoryResponseDTO.setTitle(watchHistoryIndex.getTitle());
             watchHistoryResponseDTO.setSubstanceId(watchHistoryIndex.getSubstanceId());
+            watchHistoryResponseDTO.setHistoryId(watchHistoryIndex.getHistoryId());
             return watchHistoryResponseDTO;
         }).collect(Collectors.toList());
         return new Page<WatchHistoryResponseDTO>(watchHistoryQueryDTO.getCurrent(),watchHistoryQueryDTO.getSize(),searchHits.getTotalHits()).setRecords(watchHistoryResponseDTOs);
     }
 
+    @Override
+    public void delete(WatchHistoryDeleteDTO watchHistoryDeleteDTO) {
+        if(WatchTypeEnum.VIDEO.name().equalsIgnoreCase(watchHistoryDeleteDTO.getType())){
+            SubstancePlayRecordDeleteDTO substancePlayRecordDeleteDTO = new SubstancePlayRecordDeleteDTO();
+            substancePlayRecordDeleteDTO.setId(watchHistoryDeleteDTO.getHistoryId());
+            remoteSubstanceService.deletePlay(substancePlayRecordDeleteDTO, SecurityConstants.FROM_IN);
+        }
+    }
 }

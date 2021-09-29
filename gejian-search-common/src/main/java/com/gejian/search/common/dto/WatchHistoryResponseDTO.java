@@ -45,14 +45,19 @@ public class WatchHistoryResponseDTO {
     private LocalDateTime updateTime;
 
 
-    @ApiModelProperty("视频/直播 封面")
+    @ApiModelProperty("视频/直播 封面url")
     @FileUrl
     private String coverFileUrl;
 
+
+    @ApiModelProperty("视频/直播 封面文件名")
     @ObjectName
     private String coverFileName;
 
+    @ApiModelProperty("视频/直播 封面桶名")
     @BucketName
     private String coverBucketName;
 
+    @ApiModelProperty("历史记录id")
+    private Long historyId;
 }
