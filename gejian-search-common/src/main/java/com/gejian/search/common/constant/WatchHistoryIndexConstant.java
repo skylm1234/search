@@ -17,6 +17,9 @@ public interface WatchHistoryIndexConstant {
     /** 视频id **/
     String FIELD_SUBSTANCE_ID = "substance_id";
 
+    /** 标题 **/
+    String FIELD_TITLE = "title";
+
     /** 直播间id **/
     String FIELD_ROOM_ID = "room_id";
 

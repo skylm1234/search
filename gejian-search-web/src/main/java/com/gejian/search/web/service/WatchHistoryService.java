@@ -25,4 +25,6 @@ public interface WatchHistoryService {
      * @return
      */
      Page<OnlineSearchDTO> searchRoom(WatchHistoryQueryDTO watchHistoryQueryDTO);
+
+    Page<OnlineSearchDTO> search(WatchHistoryQueryDTO watchHistoryQueryDTO);
 }

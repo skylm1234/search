@@ -1,5 +1,6 @@
 package com.gejian.search.common.index;
 
+import com.gejian.search.common.constant.BasicConstant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,7 +12,15 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
-import static com.gejian.search.common.constant.WatchHistoryIndexConstant.*;
+import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_CREATE_TIME;
+import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_DELETED;
+import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_ROOM_ID;
+import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_SUBSTANCE_ID;
+import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_TITLE;
+import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_TYPE;
+import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_UPDATE_TIME;
+import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_USER_ID;
+import static com.gejian.search.common.constant.WatchHistoryIndexConstant.INDEX_NAME;
 
 /**
  * @author ：lijianghuai
@@ -32,6 +41,9 @@ public class WatchHistoryIndex {
 
     @Field(type = FieldType.Keyword,name = FIELD_TYPE)
     private String type;
+
+    @Field(type = FieldType.Text,name = FIELD_TITLE,analyzer = BasicConstant.IK_MAX_WORD)
+    private String title;
 
     @Field(type = FieldType.Date,name = FIELD_CREATE_TIME,format = { DateFormat.date_time_no_millis, DateFormat.epoch_millis,DateFormat.epoch_second })
     private Long createTime;

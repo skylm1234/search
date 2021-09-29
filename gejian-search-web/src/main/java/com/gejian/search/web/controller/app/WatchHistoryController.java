@@ -29,7 +29,7 @@ public class WatchHistoryController {
     @Autowired
     private WatchHistoryService watchHistoryService;
 
-    @PostMapping("/video")
+   /* @PostMapping("/video")
     @ApiOperation("视频历史列表")
     public R<Page<OnlineSearchDTO>> searchSubstance(@Valid @RequestBody  WatchHistoryQueryDTO watchHistoryQueryDTO){
         return R.ok(watchHistoryService.searchSubstance(watchHistoryQueryDTO));
@@ -39,5 +39,11 @@ public class WatchHistoryController {
     @ApiOperation("直播历史记录")
     public R<Page<OnlineSearchDTO>> searchRoom(@Valid @RequestBody  WatchHistoryQueryDTO watchHistoryQueryDTO){
         return R.ok(watchHistoryService.searchRoom(watchHistoryQueryDTO));
+    }*/
+
+    @PostMapping("")
+    @ApiOperation("播放历史记录")
+    public R<Page<OnlineSearchDTO>> search(@Valid @RequestBody  WatchHistoryQueryDTO watchHistoryQueryDTO){
+        return R.ok(watchHistoryService.search(watchHistoryQueryDTO));
     }
 }
