@@ -14,6 +14,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_CREATE_TIME;
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_DELETED;
+import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_RECORD_TYPE;
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_ROOM_ID;
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_SUBSTANCE_ID;
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_TITLE;
@@ -44,6 +45,9 @@ public class WatchHistoryIndex {
 
     @Field(type = FieldType.Text,name = FIELD_TITLE,analyzer = BasicConstant.IK_MAX_WORD)
     private String title;
+
+    @Field(type = FieldType.Integer,name = FIELD_RECORD_TYPE)
+    private Integer recordType;
 
     @Field(type = FieldType.Date,name = FIELD_CREATE_TIME,format = { DateFormat.date_time_no_millis, DateFormat.epoch_millis,DateFormat.epoch_second })
     private Long createTime;

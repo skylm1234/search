@@ -62,6 +62,7 @@ public class WatchHistoryServiceImpl implements WatchHistoryService {
         }
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         GeJianUser user = SecurityUtils.getUser();
+        boolQueryBuilder.must(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_RECORD_TYPE,1));
         boolQueryBuilder.must(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_USER_ID,user.getId()));
         boolQueryBuilder.must(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_TYPE, WatchTypeEnum.VIDEO.name().toLowerCase()));
         boolQueryBuilder.must(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_DELETED, Boolean.FALSE));
