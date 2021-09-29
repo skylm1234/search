@@ -50,7 +50,7 @@ public class WatchHistoryController {
 
     @PostMapping("/delete")
     @ApiOperation("删除播放历史记录")
-    public R<Void> delete(@Valid @RequestBody  WatchHistoryDeleteDTO watchHistoryDeleteDTO){
+    public R<Void> delete(@Valid @RequestBody WatchHistoryDeleteDTO watchHistoryDeleteDTO){
         watchHistoryService.delete(watchHistoryDeleteDTO);
         return R.ok();
     }

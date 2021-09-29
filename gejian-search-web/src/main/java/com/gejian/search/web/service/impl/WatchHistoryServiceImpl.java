@@ -106,7 +106,7 @@ public class WatchHistoryServiceImpl implements WatchHistoryService {
             remoteSubstanceService.deletePlay(substancePlayRecordDeleteDTO, SecurityConstants.FROM_IN);
             BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
             boolQueryBuilder.must(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_HISTORY_ID,watchHistoryDeleteDTO.getHistoryId()));
-            boolQueryBuilder.must(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_TYPE,watchHistoryDeleteDTO.getType()));
+            boolQueryBuilder.must(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_TYPE,watchHistoryDeleteDTO.getType().toLowerCase()));
             NativeSearchQuery nativeSearchQuery = new NativeSearchQuery(boolQueryBuilder);
              elasticsearchRestTemplate.delete(nativeSearchQuery, WatchHistoryIndex.class);
         }
