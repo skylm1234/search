@@ -60,4 +60,7 @@ public class WatchHistoryResponseDTO {
 
     @ApiModelProperty("历史记录id")
     private Long historyId;
+
+    @ApiModelProperty("是否开播；0：未开播，1：已开播")
+    private Integer streamStatus;
 }
