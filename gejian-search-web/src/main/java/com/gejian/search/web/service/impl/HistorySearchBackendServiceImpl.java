@@ -129,7 +129,7 @@ public class HistorySearchBackendServiceImpl implements HistorySearchBackendServ
             historySearchBackendQueryDTO.setSize(10);
         }
 
-        PageRequest pageRequest = PageRequest.of((historySearchBackendQueryDTO.getCurrent() - 1) * historySearchBackendQueryDTO.getSize(), historySearchBackendQueryDTO.getSize());
+        PageRequest pageRequest = PageRequest.of((historySearchBackendQueryDTO.getCurrent() - 1), historySearchBackendQueryDTO.getSize());
         return pageRequest.withSort(Sort.Direction.DESC,SearchHistoryIndexConstant.FIELD_CREATE_TIME);
     }
 

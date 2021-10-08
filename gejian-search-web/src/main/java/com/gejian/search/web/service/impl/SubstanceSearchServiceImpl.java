@@ -143,7 +143,7 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
             substanceSearchDTO.setSize(10);
         }
 
-        PageRequest pageRequest = PageRequest.of((substanceSearchDTO.getCurrent() - 1) * substanceSearchDTO.getSize(), substanceSearchDTO.getSize());
+        PageRequest pageRequest = PageRequest.of((substanceSearchDTO.getCurrent() - 1) , substanceSearchDTO.getSize());
         if (substanceSearchDTO.getOrderField() != null) {
             Optional<String> fieldMapping = substanceSearchDTO.getOrderField().fieldMapping();
             if (fieldMapping.isPresent()) {
