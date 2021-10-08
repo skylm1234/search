@@ -23,6 +23,7 @@ import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.Instant;
@@ -97,6 +98,9 @@ public class HistorySearchBackendServiceImpl implements HistorySearchBackendServ
             return new Page<>();
         }
         List<SearchHistoryIndex> contents = searchHits.stream().map(SearchHit::getContent).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(contents)) {
+            return new Page<>();
+        }
         List<HistorySearchBackendResultDTO> resultDTOList = contents.stream().map(index -> HistorySearchBackendResultDTO.builder()
                         .content(index.getContent()).createTime(LocalDateTime.ofInstant(Instant.ofEpochSecond(index.getCreateTime()), ZoneOffset.ofHours(8))).build())
                 .collect(Collectors.toList());
