@@ -65,10 +65,10 @@ public class WatchHistoryServiceImpl implements WatchHistoryService {
         }
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         GeJianUser user = SecurityUtils.getUser();
-        boolQueryBuilder.must(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_RECORD_TYPE,1));
-        boolQueryBuilder.must(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_USER_ID,user.getId()));
-        boolQueryBuilder.must(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_TYPE, WatchTypeEnum.VIDEO.name().toLowerCase()));
-        boolQueryBuilder.must(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_DELETED, Boolean.FALSE));
+        boolQueryBuilder.filter(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_RECORD_TYPE,1));
+        boolQueryBuilder.filter(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_USER_ID,user.getId()));
+        boolQueryBuilder.filter(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_TYPE, WatchTypeEnum.VIDEO.name().toLowerCase()));
+        boolQueryBuilder.filter(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_DELETED, Boolean.FALSE));
         if(StringUtils.isNotBlank(watchHistoryQueryDTO.getTitle())){
             boolQueryBuilder.must(QueryBuilders.matchQuery(WatchHistoryIndexConstant.FIELD_TITLE,watchHistoryQueryDTO.getTitle()));
         }
@@ -105,8 +105,8 @@ public class WatchHistoryServiceImpl implements WatchHistoryService {
             substancePlayRecordDeleteDTO.setId(watchHistoryDeleteDTO.getHistoryId());
             remoteSubstanceService.deletePlay(substancePlayRecordDeleteDTO, SecurityConstants.FROM_IN);
             BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
-            boolQueryBuilder.must(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_HISTORY_ID,watchHistoryDeleteDTO.getHistoryId()));
-            boolQueryBuilder.must(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_TYPE,watchHistoryDeleteDTO.getType().toLowerCase()));
+            boolQueryBuilder.filter(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_HISTORY_ID,watchHistoryDeleteDTO.getHistoryId()));
+            boolQueryBuilder.filter(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_TYPE,watchHistoryDeleteDTO.getType().toLowerCase()));
             NativeSearchQuery nativeSearchQuery = new NativeSearchQuery(boolQueryBuilder);
              elasticsearchRestTemplate.delete(nativeSearchQuery, WatchHistoryIndex.class);
         }

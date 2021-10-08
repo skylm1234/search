@@ -82,13 +82,13 @@ public class HistorySearchBackendServiceImpl implements HistorySearchBackendServ
     public Page<HistorySearchBackendResultDTO> queryHistorySearch(HistorySearchBackendQueryDTO historySearchBackendQueryDTO) {
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         if(historySearchBackendQueryDTO.getStartedAt() != null){
-            boolQueryBuilder.must(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).gte(historySearchBackendQueryDTO.getStartedAt().toEpochSecond(ZoneOffset.ofHours(8))));
+            boolQueryBuilder.filter(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).gte(historySearchBackendQueryDTO.getStartedAt().toEpochSecond(ZoneOffset.ofHours(8))));
         }
         if(historySearchBackendQueryDTO.getTerminatedAt() != null){
-            boolQueryBuilder.must(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).lte(historySearchBackendQueryDTO.getTerminatedAt().toEpochSecond(ZoneOffset.ofHours(8))));
+            boolQueryBuilder.filter(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).lte(historySearchBackendQueryDTO.getTerminatedAt().toEpochSecond(ZoneOffset.ofHours(8))));
         }
         if(StringUtils.hasText(historySearchBackendQueryDTO.getContent())){
-            boolQueryBuilder.must(QueryBuilders.termQuery(SearchHistoryIndexConstant.FIELD_CONTENT,historySearchBackendQueryDTO.getContent()));
+            boolQueryBuilder.filter(QueryBuilders.termQuery(SearchHistoryIndexConstant.FIELD_CONTENT,historySearchBackendQueryDTO.getContent()));
         }
         NativeSearchQuery nativeSearchQuery = new NativeSearchQuery(boolQueryBuilder);
         PageRequest pageRequest = page(historySearchBackendQueryDTO);
