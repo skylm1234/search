@@ -2,9 +2,9 @@ package com.gejian.search.web.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gejian.common.security.service.GeJianUser;
+import com.gejian.search.common.dto.SubstanceOnlineResponseDTO;
 import com.gejian.search.common.dto.SubstanceSearchDTO;
 import com.gejian.search.common.dto.UserSearchDTO;
-import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
 import com.gejian.substance.client.dto.video.UserSearchVideoViewDTO;
 
 import java.util.List;
@@ -22,7 +22,7 @@ public interface SubstanceSearchService {
      * @param substanceSearchDTO
      * @return
      */
-    Page<OnlineSearchDTO> search(SubstanceSearchDTO substanceSearchDTO);
+    Page<SubstanceOnlineResponseDTO> search(SubstanceSearchDTO substanceSearchDTO);
 
     /**
      * 搜搜用户视频

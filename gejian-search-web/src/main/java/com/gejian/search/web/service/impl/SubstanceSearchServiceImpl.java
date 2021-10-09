@@ -2,10 +2,12 @@ package com.gejian.search.web.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gejian.common.core.constant.SecurityConstants;
-import com.gejian.common.core.util.R;
 import com.gejian.common.core.util.acautomation.ACAutomationSearch;
+import com.gejian.common.minio.annotation.MinioResponse;
 import com.gejian.common.security.service.GeJianUser;
+import com.gejian.search.common.constant.BasicConstant;
 import com.gejian.search.common.constant.UserVideoIndexConstant;
+import com.gejian.search.common.dto.SubstanceOnlineResponseDTO;
 import com.gejian.search.common.dto.SubstanceSearchDTO;
 import com.gejian.search.common.dto.UserSearchDTO;
 import com.gejian.search.common.enums.SearchTypeEnum;
@@ -15,8 +17,6 @@ import com.gejian.search.web.executor.AsyncExecutor;
 import com.gejian.search.web.service.HistorySearchBackendService;
 import com.gejian.search.web.service.RedisSearchService;
 import com.gejian.search.web.service.SubstanceSearchService;
-import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
-import com.gejian.substance.client.dto.online.rpc.RpcOnlineSearchDTO;
 import com.gejian.substance.client.dto.video.UserSearchVideoViewDTO;
 import com.gejian.substance.client.dto.video.app.AppUserSearchVideoDTO;
 import com.gejian.substance.client.feign.RemoteSubstanceService;
@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchPhraseQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -63,16 +64,17 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
     private ElasticsearchRestTemplate elasticsearchRestTemplate;
 
     @Autowired
-    private RemoteSubstanceService remoteSubstanceService;
+    private RedisSearchService redisSearchService;
 
     @Autowired
-    private RedisSearchService redisSearchService;
+    private RemoteSubstanceService remoteSubstanceService;
 
     @Autowired
     private HistorySearchBackendService historySearchBackendService;
 
+    @MinioResponse
     @Override
-    public Page<OnlineSearchDTO> search(SubstanceSearchDTO substanceSearchDTO) {
+    public Page<SubstanceOnlineResponseDTO> search(SubstanceSearchDTO substanceSearchDTO) {
 
         if (!StringUtils.hasText(substanceSearchDTO.getContent())) {
             return new Page<>();
@@ -85,7 +87,7 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         BoolQueryBuilder innerBoolQueryBuilder = new BoolQueryBuilder();
         if (substanceSearchDTO.getSearchType() == null || substanceSearchDTO.getSearchType() == SearchTypeEnum.VIDEO) {
-            innerBoolQueryBuilder.must(QueryBuilders.multiMatchQuery(substanceSearchDTO.getContent(), FIELD_VIDEO_TITLE, FIELD_VIDEO_INTRODUCE));
+            innerBoolQueryBuilder.must(QueryBuilders.multiMatchQuery(substanceSearchDTO.getContent(), FIELD_VIDEO_TITLE, FIELD_VIDEO_INTRODUCE).analyzer(BasicConstant.IK_SMART));
         } else {
             innerBoolQueryBuilder.must(QueryBuilders.matchQuery(FIELD_CREATE_USER_NICKNAME, substanceSearchDTO.getContent()));
         }
@@ -114,11 +116,12 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
         if (CollectionUtils.isEmpty(contents)) {
             return new Page<>();
         }
-        RpcOnlineSearchDTO rpcOnlineSearchDTO = new RpcOnlineSearchDTO();
-        rpcOnlineSearchDTO.setIds(contents.stream().map(SubstanceOnlineIndex::getId).collect(Collectors.toList()));
-        final R<List<OnlineSearchDTO>> listR = remoteSubstanceService.search(rpcOnlineSearchDTO, SecurityConstants.FROM_IN);
-        AsyncExecutor.execute(() -> historySearchBackendService.insert(substanceSearchDTO.getContent()));
-        return new Page<OnlineSearchDTO>(substanceSearchDTO.getCurrent(), substanceSearchDTO.getSize(), searchHits.getTotalHits()).setRecords(listR.getData());
+        List<SubstanceOnlineResponseDTO> responseDTOS = contents.stream().map(substanceOnlineIndex -> {
+            SubstanceOnlineResponseDTO substanceOnlineResponseDTO = new SubstanceOnlineResponseDTO();
+            BeanUtils.copyProperties(substanceOnlineIndex, substanceOnlineResponseDTO);
+            return substanceOnlineResponseDTO;
+        }).collect(Collectors.toList());
+        return new Page<SubstanceOnlineResponseDTO>(substanceSearchDTO.getCurrent(), substanceSearchDTO.getSize(), searchHits.getTotalHits()).setRecords(responseDTOS);
     }
 
     @Override

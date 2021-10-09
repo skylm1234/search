@@ -53,27 +53,26 @@ public class HistorySearchBackendServiceImpl implements HistorySearchBackendServ
     @Override
     public Page<PopularSearchBackendResultDTO> queryPopular(PopularSearchBackendQueryDTO popularBackendSearchDTO) {
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
-        if(popularBackendSearchDTO.getStartedAt() != null){
+        if (popularBackendSearchDTO.getStartedAt() != null) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).gte(popularBackendSearchDTO.getStartedAt().toEpochSecond(ZoneOffset.ofHours(8))));
         }
-        if(popularBackendSearchDTO.getTerminatedAt() != null){
+        if (popularBackendSearchDTO.getTerminatedAt() != null) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).lte(popularBackendSearchDTO.getTerminatedAt().toEpochSecond(ZoneOffset.ofHours(8))));
         }
-        if(StringUtils.hasText(popularBackendSearchDTO.getContent())){
-            boolQueryBuilder.must(QueryBuilders.termQuery(SearchHistoryIndexConstant.FIELD_CONTENT,popularBackendSearchDTO.getContent()));
+        if (StringUtils.hasText(popularBackendSearchDTO.getContent())) {
+            boolQueryBuilder.must(QueryBuilders.termQuery(SearchHistoryIndexConstant.FIELD_CONTENT, popularBackendSearchDTO.getContent()));
         }
         NativeSearchQuery nativeSearchQuery = new NativeSearchQuery(boolQueryBuilder);
         nativeSearchQuery.setMaxResults(0);
         TermsAggregationBuilder termsAggregationBuilder = AggregationBuilders.terms("popular").field(SearchHistoryIndexConstant.FIELD_CONTENT).size(100000);
         nativeSearchQuery.addAggregation(termsAggregationBuilder);
         Aggregations aggregations = elasticsearchRestTemplate.search(nativeSearchQuery, SearchHistoryIndex.class).getAggregations();
-        if(aggregations != null){
+        if (aggregations != null) {
             ParsedStringTerms popular = aggregations.get("popular");
             List<? extends Terms.Bucket> buckets = popular.getBuckets();
             List<PopularSearchBackendResultDTO> popularBackendResultDTOList = sub(buckets, popularBackendSearchDTO).stream().map(bucket -> PopularSearchBackendResultDTO.builder().keyword(bucket.getKeyAsString()).count(bucket.getDocCount()).build()).collect(Collectors.toList());
             int total = buckets.size();
-            buckets = null;
-            return new Page<PopularSearchBackendResultDTO>(popularBackendSearchDTO.getCurrent(),popularBackendSearchDTO.getSize(),total).setRecords(popularBackendResultDTOList);
+            return new Page<PopularSearchBackendResultDTO>(popularBackendSearchDTO.getCurrent(), popularBackendSearchDTO.getSize(), total).setRecords(popularBackendResultDTOList);
         }
         return new Page<>();
     }
@@ -81,20 +80,20 @@ public class HistorySearchBackendServiceImpl implements HistorySearchBackendServ
     @Override
     public Page<HistorySearchBackendResultDTO> queryHistorySearch(HistorySearchBackendQueryDTO historySearchBackendQueryDTO) {
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
-        if(historySearchBackendQueryDTO.getStartedAt() != null){
+        if (historySearchBackendQueryDTO.getStartedAt() != null) {
             boolQueryBuilder.filter(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).gte(historySearchBackendQueryDTO.getStartedAt().toEpochSecond(ZoneOffset.ofHours(8))));
         }
-        if(historySearchBackendQueryDTO.getTerminatedAt() != null){
+        if (historySearchBackendQueryDTO.getTerminatedAt() != null) {
             boolQueryBuilder.filter(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).lte(historySearchBackendQueryDTO.getTerminatedAt().toEpochSecond(ZoneOffset.ofHours(8))));
         }
-        if(StringUtils.hasText(historySearchBackendQueryDTO.getContent())){
-            boolQueryBuilder.filter(QueryBuilders.termQuery(SearchHistoryIndexConstant.FIELD_CONTENT,historySearchBackendQueryDTO.getContent()));
+        if (StringUtils.hasText(historySearchBackendQueryDTO.getContent())) {
+            boolQueryBuilder.filter(QueryBuilders.termQuery(SearchHistoryIndexConstant.FIELD_CONTENT, historySearchBackendQueryDTO.getContent()));
         }
         NativeSearchQuery nativeSearchQuery = new NativeSearchQuery(boolQueryBuilder);
         PageRequest pageRequest = page(historySearchBackendQueryDTO);
         nativeSearchQuery.setPageable(pageRequest);
         SearchHits<SearchHistoryIndex> searchHits = elasticsearchRestTemplate.search(nativeSearchQuery, SearchHistoryIndex.class);
-        if(searchHits.getTotalHits() <= 0){
+        if (searchHits.getTotalHits() <= 0) {
             return new Page<>();
         }
         List<SearchHistoryIndex> contents = searchHits.stream().map(SearchHit::getContent).collect(Collectors.toList());
@@ -104,37 +103,37 @@ public class HistorySearchBackendServiceImpl implements HistorySearchBackendServ
         List<HistorySearchBackendResultDTO> resultDTOList = contents.stream().map(index -> HistorySearchBackendResultDTO.builder()
                         .content(index.getContent()).createTime(LocalDateTime.ofInstant(Instant.ofEpochSecond(index.getCreateTime()), ZoneOffset.ofHours(8))).build())
                 .collect(Collectors.toList());
-        return new Page<HistorySearchBackendResultDTO>(historySearchBackendQueryDTO.getCurrent(),historySearchBackendQueryDTO.getSize(),searchHits.getTotalHits()).setRecords(resultDTOList);
+        return new Page<HistorySearchBackendResultDTO>(historySearchBackendQueryDTO.getCurrent(), historySearchBackendQueryDTO.getSize(), searchHits.getTotalHits()).setRecords(resultDTOList);
     }
 
-    private List<? extends Terms.Bucket> sub(List<? extends Terms.Bucket> source, PopularSearchBackendQueryDTO popularBackendSearchDTO){
-        if(popularBackendSearchDTO.getCurrent() == null){
+    private List<? extends Terms.Bucket> sub(List<? extends Terms.Bucket> source, PopularSearchBackendQueryDTO popularBackendSearchDTO) {
+        if (popularBackendSearchDTO.getCurrent() == null) {
             popularBackendSearchDTO.setCurrent(1);
         }
-        if(popularBackendSearchDTO.getSize() == null){
+        if (popularBackendSearchDTO.getSize() == null) {
             popularBackendSearchDTO.setSize(10);
         }
         int start = (popularBackendSearchDTO.getCurrent() - 1) * popularBackendSearchDTO.getSize();
-        if(start >= source.size()){
+        if (start >= source.size()) {
             return Collections.emptyList();
         }
         int end = start + popularBackendSearchDTO.getSize();
-        if(end > source.size()){
+        if (end > source.size()) {
             end = source.size();
         }
-        return source.subList(start,end);
+        return source.subList(start, end);
     }
 
-    private PageRequest page(HistorySearchBackendQueryDTO historySearchBackendQueryDTO){
-        if(historySearchBackendQueryDTO.getCurrent() == null){
+    private PageRequest page(HistorySearchBackendQueryDTO historySearchBackendQueryDTO) {
+        if (historySearchBackendQueryDTO.getCurrent() == null) {
             historySearchBackendQueryDTO.setCurrent(1);
         }
-        if(historySearchBackendQueryDTO.getSize() == null){
+        if (historySearchBackendQueryDTO.getSize() == null) {
             historySearchBackendQueryDTO.setSize(10);
         }
 
         PageRequest pageRequest = PageRequest.of((historySearchBackendQueryDTO.getCurrent() - 1), historySearchBackendQueryDTO.getSize());
-        return pageRequest.withSort(Sort.Direction.DESC,SearchHistoryIndexConstant.FIELD_CREATE_TIME);
+        return pageRequest.withSort(Sort.Direction.DESC, SearchHistoryIndexConstant.FIELD_CREATE_TIME);
     }
 
 }

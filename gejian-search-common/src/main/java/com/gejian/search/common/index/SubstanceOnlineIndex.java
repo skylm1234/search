@@ -16,19 +16,27 @@ import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIE
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_CLASSIFY_ID;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_COLLECT_COUNT;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_COMMENT_COUNT;
-import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_COUNT_UPDATE_TIME;
+import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_COVER_BUCKET_NAME;
+import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_COVER_FILE_NAME;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_CREATE_TIME;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_CREATE_USER_ID;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_CREATE_USER_NAME;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_CREATE_USER_NICKNAME;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_DELETED;
+import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_DOWNLOAD;
+import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_FAILURE;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_FORWARD_COUNT;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_PLAY_COUNT;
+import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_PRE_ID;
+import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_PUSH_LEVEL;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_SHARE_COUNT;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_UPDATE_TIME;
+import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_VIDEO_BUCKET_NAME_ORIGINAL;
+import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_VIDEO_FILE_NAME_ORIGINAL;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_VIDEO_INTRODUCE;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_VIDEO_LENGTH;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_VIDEO_TITLE;
+import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_WATCH_LEVEL;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.INDEX_NAME;
 
 /**
@@ -57,6 +65,9 @@ public class SubstanceOnlineIndex {
 	@Field(type = FieldType.Long,name = FIELD_CLASSIFY_ID)
 	private long classifyId;
 
+	@Field(type = FieldType.Long,name = FIELD_PRE_ID)
+	private long substanceId;
+
 	@Field(type = FieldType.Long,name = FIELD_CREATE_USER_ID)
 	private long createUserId;
 
@@ -64,7 +75,25 @@ public class SubstanceOnlineIndex {
 	private String createUserName;
 
 	@Field(type = FieldType.Text,name = FIELD_CREATE_USER_NICKNAME,analyzer = BasicConstant.IK_MAX_WORD)
-	private String createUserNickname;
+	private String createUserNikeName;
+
+	@Field(type = FieldType.Keyword,name = FIELD_COVER_FILE_NAME)
+	private String coverFileName;
+
+	@Field(type = FieldType.Keyword,name = FIELD_COVER_BUCKET_NAME)
+	private String coverBucketName;
+
+	@Field(type = FieldType.Keyword,name = FIELD_VIDEO_FILE_NAME_ORIGINAL)
+	private String videoFileNameOriginal;
+
+	@Field(type = FieldType.Keyword,name = FIELD_VIDEO_BUCKET_NAME_ORIGINAL)
+	private String videoBucketNameOriginal;
+
+	@Field(type = FieldType.Keyword,name = FIELD_PUSH_LEVEL)
+	private String pushLevel;
+
+	@Field(type = FieldType.Keyword,name = FIELD_WATCH_LEVEL)
+	private String watchLevel;
 
 	@Field(type = FieldType.Long,name = FIELD_PLAY_COUNT)
 	private long playCount;
@@ -87,12 +116,16 @@ public class SubstanceOnlineIndex {
 	@Field(type = FieldType.Boolean,name = FIELD_DELETED)
 	private boolean deleted;
 
+	@Field(type = FieldType.Boolean,name = FIELD_DOWNLOAD)
+	private boolean download;
+
+	@Field(type = FieldType.Boolean,name = FIELD_FAILURE)
+	private boolean failure;
+
 	@Field(type = FieldType.Date,name = FIELD_CREATE_TIME,format = { DateFormat.date_time_no_millis, DateFormat.epoch_millis,DateFormat.epoch_second })
 	private LocalDateTime createTime;
 
 	@Field(type = FieldType.Date,name = FIELD_UPDATE_TIME,format = { DateFormat.date_time_no_millis, DateFormat.epoch_millis,DateFormat.epoch_second })
 	private LocalDateTime updateTime;
 
-	@Field(type = FieldType.Date,name = FIELD_COUNT_UPDATE_TIME,format = { DateFormat.date_time_no_millis, DateFormat.epoch_millis,DateFormat.epoch_second })
-	private LocalDateTime countUpdateTime;
 }
