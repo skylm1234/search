@@ -46,7 +46,7 @@ public interface WatchHistoryService {
 
     /**
      * 删除播放记录
-     * @param watchHistoryDeleteDTOs
+     * @param watchHistoryDeleteAllDTO
      */
     void deleteAll(WatchHistoryDeleteAllDTO watchHistoryDeleteAllDTO);
 }

@@ -1,6 +1,7 @@
 package com.gejian.search.web.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.gejian.search.common.constant.BasicConstant;
 import com.gejian.search.common.constant.SearchHistoryIndexConstant;
 import com.gejian.search.common.dto.HistorySearchBackendQueryDTO;
 import com.gejian.search.common.dto.HistorySearchBackendResultDTO;
@@ -12,6 +13,7 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.terms.IncludeExclude;
 import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
@@ -54,20 +56,21 @@ public class SearchHistoryServiceImpl implements SearchHistoryService {
     public Page<PopularSearchBackendResultDTO> queryPopularWords(PopularSearchBackendQueryDTO popularBackendSearchDTO) {
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         if (popularBackendSearchDTO.getStartedAt() != null) {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).gte(popularBackendSearchDTO.getStartedAt().toEpochSecond(ZoneOffset.ofHours(8))));
+            boolQueryBuilder.filter(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).gte(popularBackendSearchDTO.getStartedAt().toEpochSecond(ZoneOffset.ofHours(8))));
         }
         if (popularBackendSearchDTO.getTerminatedAt() != null) {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).lte(popularBackendSearchDTO.getTerminatedAt().toEpochSecond(ZoneOffset.ofHours(8))));
+            boolQueryBuilder.filter(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).lte(popularBackendSearchDTO.getTerminatedAt().toEpochSecond(ZoneOffset.ofHours(8))));
         }
         if(popularBackendSearchDTO.getStartedAt() == null && popularBackendSearchDTO.getTerminatedAt() == null){
-            boolQueryBuilder.must(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).gte(LocalDateTime.now().minusDays(7).toEpochSecond(ZoneOffset.ofHours(8))));
+            boolQueryBuilder.filter(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).gte(LocalDateTime.now().minusDays(7).toEpochSecond(ZoneOffset.ofHours(8))));
         }
         if (StringUtils.hasText(popularBackendSearchDTO.getContent())) {
-            boolQueryBuilder.must(QueryBuilders.termQuery(SearchHistoryIndexConstant.FIELD_CONTENT, popularBackendSearchDTO.getContent()));
+            boolQueryBuilder.must(QueryBuilders.matchQuery(SearchHistoryIndexConstant.FIELD_CONTENT, popularBackendSearchDTO.getContent()).analyzer(BasicConstant.IK_SMART));
         }
         NativeSearchQuery nativeSearchQuery = new NativeSearchQuery(boolQueryBuilder);
         nativeSearchQuery.setMaxResults(0);
-        TermsAggregationBuilder termsAggregationBuilder = AggregationBuilders.terms("popular").field(SearchHistoryIndexConstant.FIELD_CONTENT).size(100000);
+        TermsAggregationBuilder termsAggregationBuilder = AggregationBuilders.terms("popular").field(SearchHistoryIndexConstant.FIELD_CONTENT)
+                .includeExclude(new IncludeExclude(null,"[\\u4E00-\\u9FA5,a-z,A-Z,0-9]")).size(100000);
         nativeSearchQuery.addAggregation(termsAggregationBuilder);
         Aggregations aggregations = elasticsearchRestTemplate.search(nativeSearchQuery, SearchHistoryIndex.class).getAggregations();
         if (aggregations != null) {
