@@ -6,6 +6,7 @@ import com.gejian.common.minio.annotation.MinioResponse;
 import com.gejian.common.security.service.GeJianUser;
 import com.gejian.common.security.util.SecurityUtils;
 import com.gejian.search.common.constant.WatchHistoryIndexConstant;
+import com.gejian.search.common.dto.WatchHistoryDeleteAllDTO;
 import com.gejian.search.common.dto.WatchHistoryDeleteDTO;
 import com.gejian.search.common.dto.WatchHistoryQueryDTO;
 import com.gejian.search.common.dto.WatchHistoryResponseDTO;
@@ -102,15 +103,29 @@ public class WatchHistoryServiceImpl implements WatchHistoryService {
     @Override
     public void delete(List<WatchHistoryDeleteDTO> watchHistoryDeleteDTOs) {
         SubstancePlayRecordDeleteDTO substancePlayRecordDeleteDTO = new SubstancePlayRecordDeleteDTO();
-        if(CollectionUtils.isEmpty(watchHistoryDeleteDTOs)){
-            substancePlayRecordDeleteDTO.setCreateUserId(SecurityUtils.getUser().getId());
-            remoteSubstanceService.deletePlayAll(substancePlayRecordDeleteDTO, SecurityConstants.FROM_IN);
-        }else{
+        if(!CollectionUtils.isEmpty(watchHistoryDeleteDTOs)){
             List<Long> historyIds = watchHistoryDeleteDTOs.stream().filter(dto -> WatchTypeEnum.VIDEO.name().equalsIgnoreCase(dto.getType())).map(WatchHistoryDeleteDTO::getHistoryId
             ).collect(Collectors.toList());
-            substancePlayRecordDeleteDTO.setIds(historyIds);
-            remoteSubstanceService.deletePlay(substancePlayRecordDeleteDTO, SecurityConstants.FROM_IN);
+            if(!CollectionUtils.isEmpty(historyIds)){
+                substancePlayRecordDeleteDTO.setIds(historyIds);
+                remoteSubstanceService.deletePlay(substancePlayRecordDeleteDTO, SecurityConstants.FROM_IN);
+            }
         }
         //TODO 直播的删除暂未开发
+    }
+
+    @Override
+    public void deleteAll(WatchHistoryDeleteAllDTO watchHistoryDeleteAllDTO) {
+        SubstancePlayRecordDeleteDTO substancePlayRecordDeleteDTO = new SubstancePlayRecordDeleteDTO();
+        substancePlayRecordDeleteDTO.setCreateUserId(SecurityUtils.getUser().getId());
+        if(WatchTypeEnum.VIDEO.name().equalsIgnoreCase(watchHistoryDeleteAllDTO.getType())){
+            remoteSubstanceService.deletePlayAll(substancePlayRecordDeleteDTO, SecurityConstants.FROM_IN);
+        }else if(WatchTypeEnum.ROOM.name().equalsIgnoreCase(watchHistoryDeleteAllDTO.getType())){
+            //删除直播
+        }else {
+            //删除所有
+            remoteSubstanceService.deletePlayAll(substancePlayRecordDeleteDTO, SecurityConstants.FROM_IN);
+            //删除直播
+        }
     }
 }

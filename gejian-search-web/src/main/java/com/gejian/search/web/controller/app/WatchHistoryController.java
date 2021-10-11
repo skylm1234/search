@@ -2,6 +2,7 @@ package com.gejian.search.web.controller.app;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gejian.common.core.util.R;
+import com.gejian.search.common.dto.WatchHistoryDeleteAllDTO;
 import com.gejian.search.common.dto.WatchHistoryDeleteDTO;
 import com.gejian.search.common.dto.WatchHistoryQueryDTO;
 import com.gejian.search.common.dto.WatchHistoryResponseDTO;
@@ -50,9 +51,16 @@ public class WatchHistoryController {
     }
 
     @PostMapping("/delete")
-    @ApiOperation("删除播放历史记录,参数为空，则删除所有")
+    @ApiOperation("删除播放历史记录")
     public R<Void> delete(@Valid @RequestBody List<WatchHistoryDeleteDTO> watchHistoryDeleteDTOs){
         watchHistoryService.delete(watchHistoryDeleteDTOs);
+        return R.ok();
+    }
+
+    @PostMapping("/delete/all")
+    @ApiOperation("删除播放历史记录,参数为空，则删除所有")
+    public R<Void> deleteAll(@Valid @RequestBody WatchHistoryDeleteAllDTO watchHistoryDeleteAllDTO){
+        watchHistoryService.deleteAll(watchHistoryDeleteAllDTO);
         return R.ok();
     }
 }
