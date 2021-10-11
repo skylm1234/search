@@ -136,7 +136,7 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
                 .withQuery(QueryBuilders.fuzzyQuery(UserVideoIndexConstant.FIELD_VIDEO_INTRODUCE, userSearchDTO.getKeywork()))
                 .withQuery(QueryBuilders.termQuery(UserVideoIndexConstant.CREATE_USER_ID, geJianUser.getId()))
                 // 分页
-                .withPageable(PageRequest.of((userSearchDTO.getCurrent() - 1) * userSearchDTO.getSize(), userSearchDTO.getSize()))
+                .withPageable(PageRequest.of((userSearchDTO.getCurrent() - 1), userSearchDTO.getSize()))
                 .build();
         SearchHits<UserVideoIndex> searchHits = elasticsearchRestTemplate.search(nativeSearchQuery, UserVideoIndex.class);
         if (searchHits.getTotalHits() <= 0) {
