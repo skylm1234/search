@@ -59,6 +59,9 @@ public class SearchHistoryServiceImpl implements SearchHistoryService {
         if (popularBackendSearchDTO.getTerminatedAt() != null) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).lte(popularBackendSearchDTO.getTerminatedAt().toEpochSecond(ZoneOffset.ofHours(8))));
         }
+        if(popularBackendSearchDTO.getStartedAt() == null && popularBackendSearchDTO.getTerminatedAt() == null){
+            boolQueryBuilder.must(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).gte(LocalDateTime.now().minusDays(7).toEpochSecond(ZoneOffset.ofHours(8))));
+        }
         if (StringUtils.hasText(popularBackendSearchDTO.getContent())) {
             boolQueryBuilder.must(QueryBuilders.termQuery(SearchHistoryIndexConstant.FIELD_CONTENT, popularBackendSearchDTO.getContent()));
         }
