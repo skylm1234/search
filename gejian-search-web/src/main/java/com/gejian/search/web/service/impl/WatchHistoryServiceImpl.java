@@ -25,6 +25,7 @@ import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -99,16 +100,16 @@ public class WatchHistoryServiceImpl implements WatchHistoryService {
     }
 
     @Override
-    public void delete(WatchHistoryDeleteDTO watchHistoryDeleteDTO) {
-        if(WatchTypeEnum.VIDEO.name().equalsIgnoreCase(watchHistoryDeleteDTO.getType())){
-            SubstancePlayRecordDeleteDTO substancePlayRecordDeleteDTO = new SubstancePlayRecordDeleteDTO();
-            substancePlayRecordDeleteDTO.setId(watchHistoryDeleteDTO.getHistoryId());
-            remoteSubstanceService.deletePlay(substancePlayRecordDeleteDTO, SecurityConstants.FROM_IN);
-            BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
-            boolQueryBuilder.filter(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_HISTORY_ID,watchHistoryDeleteDTO.getHistoryId()));
-            boolQueryBuilder.filter(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_TYPE,watchHistoryDeleteDTO.getType().toLowerCase()));
-            NativeSearchQuery nativeSearchQuery = new NativeSearchQuery(boolQueryBuilder);
-             elasticsearchRestTemplate.delete(nativeSearchQuery, WatchHistoryIndex.class);
+    public void delete(List<WatchHistoryDeleteDTO> watchHistoryDeleteDTOs) {
+        SubstancePlayRecordDeleteDTO substancePlayRecordDeleteDTO = new SubstancePlayRecordDeleteDTO();
+        if(CollectionUtils.isEmpty(watchHistoryDeleteDTOs)){
+            substancePlayRecordDeleteDTO.setCreateUserId(SecurityUtils.getUser().getId());
+        }else{
+            List<Long> historyIds = watchHistoryDeleteDTOs.stream().filter(dto -> WatchTypeEnum.VIDEO.name().equalsIgnoreCase(dto.getType())).map(WatchHistoryDeleteDTO::getHistoryId
+            ).collect(Collectors.toList());
+            substancePlayRecordDeleteDTO.setIds(historyIds);
         }
+        remoteSubstanceService.deletePlay(substancePlayRecordDeleteDTO, SecurityConstants.FROM_IN);
+        //TODO 直播的删除暂未开发
     }
 }

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * @author ：lijianghuai
@@ -49,9 +50,9 @@ public class WatchHistoryController {
     }
 
     @PostMapping("/delete")
-    @ApiOperation("删除播放历史记录")
-    public R<Void> delete(@Valid @RequestBody WatchHistoryDeleteDTO watchHistoryDeleteDTO){
-        watchHistoryService.delete(watchHistoryDeleteDTO);
+    @ApiOperation("删除播放历史记录,参数为空，则删除所有")
+    public R<Void> delete(@Valid @RequestBody List<WatchHistoryDeleteDTO> watchHistoryDeleteDTOs){
+        watchHistoryService.delete(watchHistoryDeleteDTOs);
         return R.ok();
     }
 }

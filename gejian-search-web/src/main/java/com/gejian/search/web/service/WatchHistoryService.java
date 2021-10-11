@@ -6,6 +6,8 @@ import com.gejian.search.common.dto.WatchHistoryQueryDTO;
 import com.gejian.search.common.dto.WatchHistoryResponseDTO;
 import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
 
+import java.util.List;
+
 /**
  * @author ：lijianghuai
  * @date ：2021-09-13 16:08
@@ -35,5 +37,9 @@ public interface WatchHistoryService {
      */
     Page<WatchHistoryResponseDTO> search(WatchHistoryQueryDTO watchHistoryQueryDTO);
 
-    void delete(WatchHistoryDeleteDTO watchHistoryDeleteDTO);
+    /**
+     * 删除播放记录
+     * @param watchHistoryDeleteDTOs
+     */
+    void delete(List<WatchHistoryDeleteDTO> watchHistoryDeleteDTOs);
 }
