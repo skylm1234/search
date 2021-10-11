@@ -9,7 +9,7 @@ import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
 /**
  * @author ：lijianghuai
  * @date ：2021-09-13 16:08
- * @description：
+ * @description：观看历史
  */
 public interface WatchHistoryService {
 

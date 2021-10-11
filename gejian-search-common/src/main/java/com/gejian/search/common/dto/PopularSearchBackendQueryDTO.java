@@ -12,15 +12,15 @@ import java.time.LocalDateTime;
  * @date 2021-09-08
  */
 @Data
-@ApiModel("管理后台查询高频关键字dto")
+@ApiModel("管理后台查询热搜词统计dto")
 public class PopularSearchBackendQueryDTO extends BasePageQuery {
 
-    @ApiModelProperty("开始时间")
+    @ApiModelProperty("统计时间-开始")
     private LocalDateTime startedAt;
 
-    @ApiModelProperty("结束时间")
+    @ApiModelProperty("统计时间-结束")
     private LocalDateTime terminatedAt;
 
-    @ApiModelProperty("搜索文本")
+    @ApiModelProperty("热搜词")
     private String content;
 }

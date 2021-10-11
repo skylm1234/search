@@ -7,7 +7,7 @@ import com.gejian.search.common.dto.HistorySearchBackendResultDTO;
 import com.gejian.search.common.dto.PopularSearchBackendQueryDTO;
 import com.gejian.search.common.dto.PopularSearchBackendResultDTO;
 import com.gejian.search.common.index.SearchHistoryIndex;
-import com.gejian.search.web.service.HistorySearchBackendService;
+import com.gejian.search.web.service.SearchHistoryService;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
@@ -36,10 +36,10 @@ import java.util.stream.Collectors;
 /**
  * @author ：lijianghuai
  * @date ：2021-09-07 11:51
- * @description：
+ * @description：搜索历史
  */
 @Component
-public class HistorySearchBackendServiceImpl implements HistorySearchBackendService {
+public class SearchHistoryServiceImpl implements SearchHistoryService {
 
     @Autowired
     private ElasticsearchRestTemplate elasticsearchRestTemplate;
@@ -51,7 +51,7 @@ public class HistorySearchBackendServiceImpl implements HistorySearchBackendServ
     }
 
     @Override
-    public Page<PopularSearchBackendResultDTO> queryPopular(PopularSearchBackendQueryDTO popularBackendSearchDTO) {
+    public Page<PopularSearchBackendResultDTO> queryPopularWords(PopularSearchBackendQueryDTO popularBackendSearchDTO) {
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         if (popularBackendSearchDTO.getStartedAt() != null) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).gte(popularBackendSearchDTO.getStartedAt().toEpochSecond(ZoneOffset.ofHours(8))));

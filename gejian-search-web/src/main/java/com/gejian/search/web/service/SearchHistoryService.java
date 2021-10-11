@@ -11,7 +11,7 @@ import com.gejian.search.common.dto.PopularSearchBackendQueryDTO;
  * @date ：2021-09-07 18:02
  * @description：热门搜索
  */
-public interface HistorySearchBackendService {
+public interface SearchHistoryService {
 
     /**
      * 插入
@@ -24,7 +24,7 @@ public interface HistorySearchBackendService {
      * @param popularBackendSearchDTO
      * @return
      */
-    Page<PopularSearchBackendResultDTO> queryPopular(PopularSearchBackendQueryDTO popularBackendSearchDTO);
+    Page<PopularSearchBackendResultDTO> queryPopularWords(PopularSearchBackendQueryDTO popularBackendSearchDTO);
 
     /**
      * 查询历史搜索记录

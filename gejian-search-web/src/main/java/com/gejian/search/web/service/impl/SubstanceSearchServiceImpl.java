@@ -14,7 +14,7 @@ import com.gejian.search.common.enums.SearchTypeEnum;
 import com.gejian.search.common.index.SubstanceOnlineIndex;
 import com.gejian.search.common.index.UserVideoIndex;
 import com.gejian.search.web.executor.AsyncExecutor;
-import com.gejian.search.web.service.HistorySearchBackendService;
+import com.gejian.search.web.service.SearchHistoryService;
 import com.gejian.search.web.service.RedisSearchService;
 import com.gejian.search.web.service.SubstanceSearchService;
 import com.gejian.substance.client.dto.video.UserSearchVideoViewDTO;
@@ -70,7 +70,7 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
     private RemoteSubstanceService remoteSubstanceService;
 
     @Autowired
-    private HistorySearchBackendService historySearchBackendService;
+    private SearchHistoryService historySearchBackendService;
 
     @MinioResponse
     @Override

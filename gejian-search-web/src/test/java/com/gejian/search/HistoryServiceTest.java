@@ -5,7 +5,7 @@ import com.gejian.search.common.dto.HistorySearchBackendQueryDTO;
 import com.gejian.search.common.dto.HistorySearchBackendResultDTO;
 import com.gejian.search.common.dto.PopularSearchBackendResultDTO;
 import com.gejian.search.common.dto.PopularSearchBackendQueryDTO;
-import com.gejian.search.web.service.HistorySearchBackendService;
+import com.gejian.search.web.service.SearchHistoryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class HistoryServiceTest extends BaseTest{
 
     @Autowired
-    private HistorySearchBackendService historySearchBackendService;
+    private SearchHistoryService historySearchBackendService;
 
     @Test
     public void should_success_when_insert(){
@@ -36,7 +36,7 @@ public class HistoryServiceTest extends BaseTest{
         //popularBackendSearchDTO.setStartedAt(LocalDateTime.ofInstant(Instant.ofEpochSecond(1631000694), ZoneOffset.ofHours(8)));
         //popularBackendSearchDTO.setStartedAt(LocalDateTime.ofInstant(Instant.ofEpochSecond(1631085371), ZoneOffset.ofHours(8)));
 
-        Page<PopularSearchBackendResultDTO> query = historySearchBackendService.queryPopular(popularBackendSearchDTO);
+        Page<PopularSearchBackendResultDTO> query = historySearchBackendService.queryPopularWords(popularBackendSearchDTO);
         System.out.println(query.getTotal());
         query.getRecords().forEach(recored -> {
             System.out.println(recored.getKeyword() + ":" + recored.getCount());
