@@ -104,12 +104,13 @@ public class WatchHistoryServiceImpl implements WatchHistoryService {
         SubstancePlayRecordDeleteDTO substancePlayRecordDeleteDTO = new SubstancePlayRecordDeleteDTO();
         if(CollectionUtils.isEmpty(watchHistoryDeleteDTOs)){
             substancePlayRecordDeleteDTO.setCreateUserId(SecurityUtils.getUser().getId());
+            remoteSubstanceService.deletePlayAll(substancePlayRecordDeleteDTO, SecurityConstants.FROM_IN);
         }else{
             List<Long> historyIds = watchHistoryDeleteDTOs.stream().filter(dto -> WatchTypeEnum.VIDEO.name().equalsIgnoreCase(dto.getType())).map(WatchHistoryDeleteDTO::getHistoryId
             ).collect(Collectors.toList());
             substancePlayRecordDeleteDTO.setIds(historyIds);
+            remoteSubstanceService.deletePlay(substancePlayRecordDeleteDTO, SecurityConstants.FROM_IN);
         }
-        remoteSubstanceService.deletePlay(substancePlayRecordDeleteDTO, SecurityConstants.FROM_IN);
         //TODO 直播的删除暂未开发
     }
 }
