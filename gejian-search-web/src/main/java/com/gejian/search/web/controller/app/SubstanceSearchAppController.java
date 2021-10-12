@@ -2,21 +2,21 @@ package com.gejian.search.web.controller.app;
 
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.gejian.common.core.annotation.CurrentUser;
 import com.gejian.common.core.util.R;
-import com.gejian.common.security.service.GeJianUser;
 import com.gejian.search.common.dto.MyHistorySearchQueryDTO;
 import com.gejian.search.common.dto.PopularSearchDTO;
+import com.gejian.search.common.dto.SubstanceOnlineResponseDTO;
 import com.gejian.search.common.dto.SubstanceSearchDTO;
-import com.gejian.search.common.dto.UserSearchDTO;
 import com.gejian.search.web.service.RedisSearchService;
 import com.gejian.search.web.service.SubstanceSearchService;
-import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
-import com.gejian.substance.client.dto.video.UserSearchVideoViewDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -41,7 +41,7 @@ public class SubstanceSearchAppController {
 
     @PostMapping("/substance")
     @ApiOperation("全局搜索视频，无需认证")
-    public R<Page<OnlineSearchDTO>> search(@RequestBody @Valid SubstanceSearchDTO substanceSearchDTO) {
+    public R<Page<SubstanceOnlineResponseDTO>> search(@RequestBody @Valid SubstanceSearchDTO substanceSearchDTO) {
         return R.ok(substanceSearchService.search(substanceSearchDTO));
     }
 

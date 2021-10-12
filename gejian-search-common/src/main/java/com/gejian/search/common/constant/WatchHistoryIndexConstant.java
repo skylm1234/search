@@ -17,10 +17,27 @@ public interface WatchHistoryIndexConstant {
     /** 视频id **/
     String FIELD_SUBSTANCE_ID = "substance_id";
 
+    /** 标题 **/
+    String FIELD_TITLE = "title";
+
     /** 直播间id **/
     String FIELD_ROOM_ID = "room_id";
 
     String FIELD_USER_ID = "user_id";
+
+    String FIELD_AUTHOR_ID = "author_id";
+
+    String FIELD_AUTHOR_USERNAME = "author_username";
+
+    String FIELD_AUTHOR_NICKNAME = "author_nickname";
+
+    String FIELD_COVER_FILE_NAME = "cover_file_name";
+
+    String FIELD_COVER_BUCKET_NAME = "cover_bucket_name";
+
+    String FIELD_RECORD_TYPE = "record_type";
+
+    String FIELD_HISTORY_ID = "history_id";
 
     /** * 创建时间 */
     String FIELD_CREATE_TIME = "create_time";

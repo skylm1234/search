@@ -43,7 +43,23 @@ public interface SubstanceOnlineIndexConstant {
 	String FIELD_CREATE_TIME = "create_time";
 	/** * 更新时间 */
 	String FIELD_UPDATE_TIME = "update_time";
-	/** * 统计更新时间 */
-	String FIELD_COUNT_UPDATE_TIME = "count_update_time";
+
+	String FIELD_DOWNLOAD = "download";
+
+	String FIELD_COVER_FILE_NAME = "cover_file_name";
+
+	String FIELD_COVER_BUCKET_NAME = "cover_bucket_name";
+
+	String FIELD_VIDEO_FILE_NAME_ORIGINAL = "video_file_name_original";
+
+	String FIELD_VIDEO_BUCKET_NAME_ORIGINAL = "video_bucket_name_original";
+
+	String FIELD_FAILURE = "failure";
+
+	String FIELD_WATCH_LEVEL = "watch_level";
+
+	String FIELD_PUSH_LEVEL = "push_level";
+
+	String FIELD_PRE_ID = "pre_id";
 
 }

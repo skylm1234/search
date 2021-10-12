@@ -2,17 +2,21 @@ package com.gejian.search.web.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gejian.common.core.constant.SecurityConstants;
-import com.gejian.common.core.util.R;
+import com.gejian.common.minio.annotation.MinioResponse;
 import com.gejian.common.security.service.GeJianUser;
 import com.gejian.common.security.util.SecurityUtils;
 import com.gejian.search.common.constant.WatchHistoryIndexConstant;
+import com.gejian.search.common.dto.WatchHistoryDeleteAllDTO;
+import com.gejian.search.common.dto.WatchHistoryDeleteDTO;
 import com.gejian.search.common.dto.WatchHistoryQueryDTO;
+import com.gejian.search.common.dto.WatchHistoryResponseDTO;
 import com.gejian.search.common.enums.WatchTypeEnum;
 import com.gejian.search.common.index.WatchHistoryIndex;
 import com.gejian.search.web.service.WatchHistoryService;
 import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
-import com.gejian.substance.client.dto.online.rpc.RpcOnlineSearchDTO;
+import com.gejian.substance.client.dto.playRecord.SubstancePlayRecordDeleteDTO;
 import com.gejian.substance.client.feign.RemoteSubstanceService;
+import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +26,7 @@ import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,14 +49,8 @@ public class WatchHistoryServiceImpl implements WatchHistoryService {
 
     @Override
     public Page<OnlineSearchDTO> searchSubstance(WatchHistoryQueryDTO watchHistoryQueryDTO) {
-        SearchHits<WatchHistoryIndex> searchHits = search(watchHistoryQueryDTO);
-        if(searchHits.isEmpty()){
-            return new Page<>();
-        }
-        RpcOnlineSearchDTO rpcOnlineSearchDTO = new RpcOnlineSearchDTO();
-        rpcOnlineSearchDTO.setIds(searchHits.stream().map(hit -> hit.getContent().getSubstanceId()).collect(Collectors.toList()));
-        final R<List<OnlineSearchDTO>> listR = remoteSubstanceService.search(rpcOnlineSearchDTO, SecurityConstants.FROM_IN);
-        return new Page<OnlineSearchDTO>(watchHistoryQueryDTO.getCurrent(),watchHistoryQueryDTO.getSize(),searchHits.getTotalHits()).setRecords(listR.getData());
+        //TODO
+        return new Page<>();
     }
 
     @Override
@@ -60,15 +59,73 @@ public class WatchHistoryServiceImpl implements WatchHistoryService {
         return new Page<>();
     }
 
-    private SearchHits<WatchHistoryIndex> search(WatchHistoryQueryDTO watchHistoryQueryDTO){
+    @MinioResponse
+    @Override
+    public Page<WatchHistoryResponseDTO> search(WatchHistoryQueryDTO watchHistoryQueryDTO) {
+        if(WatchTypeEnum.ROOM.name().equals(watchHistoryQueryDTO.getType())){
+            return new Page<>();
+        }
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         GeJianUser user = SecurityUtils.getUser();
-        boolQueryBuilder.must(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_USER_ID,user.getId()));
-        boolQueryBuilder.must(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_TYPE, WatchTypeEnum.VIDEO.name().toLowerCase()));
-        boolQueryBuilder.must(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_DELETED, Boolean.FALSE));
-        PageRequest pageRequest = PageRequest.of((watchHistoryQueryDTO.getCurrent() - 1) * watchHistoryQueryDTO.getSize(), watchHistoryQueryDTO.getSize(),Sort.by(Sort.Direction.DESC,WatchHistoryIndexConstant.FIELD_CREATE_TIME));
+        boolQueryBuilder.filter(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_RECORD_TYPE,1));
+        boolQueryBuilder.filter(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_USER_ID,user.getId()));
+        boolQueryBuilder.filter(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_TYPE, WatchTypeEnum.VIDEO.name().toLowerCase()));
+        boolQueryBuilder.filter(QueryBuilders.termQuery(WatchHistoryIndexConstant.FIELD_DELETED, Boolean.FALSE));
+        if(StringUtils.isNotBlank(watchHistoryQueryDTO.getTitle())){
+            boolQueryBuilder.must(QueryBuilders.matchQuery(WatchHistoryIndexConstant.FIELD_TITLE,watchHistoryQueryDTO.getTitle()));
+        }
+        PageRequest pageRequest = PageRequest.of((watchHistoryQueryDTO.getCurrent() - 1) , watchHistoryQueryDTO.getSize(),Sort.by(Sort.Direction.DESC,WatchHistoryIndexConstant.FIELD_CREATE_TIME));
         NativeSearchQuery nativeSearchQuery = new NativeSearchQuery(boolQueryBuilder);
         nativeSearchQuery.setPageable(pageRequest);
-        return elasticsearchRestTemplate.search(nativeSearchQuery, WatchHistoryIndex.class);
+        SearchHits<WatchHistoryIndex> searchHits =  elasticsearchRestTemplate.search(nativeSearchQuery, WatchHistoryIndex.class);
+        if(searchHits.isEmpty()){
+            return new Page<>();
+        }
+        List<WatchHistoryResponseDTO> watchHistoryResponseDTOs = searchHits.stream().map(hit -> {
+            WatchHistoryIndex watchHistoryIndex = hit.getContent();
+            WatchHistoryResponseDTO watchHistoryResponseDTO = new WatchHistoryResponseDTO();
+            watchHistoryResponseDTO.setCoverFileName(watchHistoryIndex.getCoverFileName());
+            watchHistoryResponseDTO.setCoverBucketName(watchHistoryIndex.getCoverBucketName());
+            watchHistoryResponseDTO.setAuthorUserId(watchHistoryIndex.getAuthorId());
+            watchHistoryResponseDTO.setAuthorNickname(watchHistoryIndex.getAuthorNickName());
+            watchHistoryResponseDTO.setAuthorUsername(watchHistoryIndex.getAuthorUsername());
+            watchHistoryResponseDTO.setRoomId(watchHistoryIndex.getRoomId());
+            watchHistoryResponseDTO.setTitle(watchHistoryIndex.getTitle());
+            watchHistoryResponseDTO.setSubstanceId(watchHistoryIndex.getSubstanceId());
+            watchHistoryResponseDTO.setHistoryId(watchHistoryIndex.getHistoryId());
+            watchHistoryResponseDTO.setWatchedAt(watchHistoryIndex.getCreateTime());
+            watchHistoryResponseDTO.setType(watchHistoryIndex.getType());
+            return watchHistoryResponseDTO;
+        }).collect(Collectors.toList());
+        return new Page<WatchHistoryResponseDTO>(watchHistoryQueryDTO.getCurrent(),watchHistoryQueryDTO.getSize(),searchHits.getTotalHits()).setRecords(watchHistoryResponseDTOs);
+    }
+
+    @Override
+    public void delete(List<WatchHistoryDeleteDTO> watchHistoryDeleteDTOs) {
+        SubstancePlayRecordDeleteDTO substancePlayRecordDeleteDTO = new SubstancePlayRecordDeleteDTO();
+        if(!CollectionUtils.isEmpty(watchHistoryDeleteDTOs)){
+            List<Long> historyIds = watchHistoryDeleteDTOs.stream().filter(dto -> WatchTypeEnum.VIDEO.name().equalsIgnoreCase(dto.getType())).map(WatchHistoryDeleteDTO::getHistoryId
+            ).collect(Collectors.toList());
+            if(!CollectionUtils.isEmpty(historyIds)){
+                substancePlayRecordDeleteDTO.setIds(historyIds);
+                remoteSubstanceService.deletePlay(substancePlayRecordDeleteDTO, SecurityConstants.FROM_IN);
+            }
+        }
+        //TODO 直播的删除暂未开发
+    }
+
+    @Override
+    public void deleteAll(WatchHistoryDeleteAllDTO watchHistoryDeleteAllDTO) {
+        SubstancePlayRecordDeleteDTO substancePlayRecordDeleteDTO = new SubstancePlayRecordDeleteDTO();
+        substancePlayRecordDeleteDTO.setCreateUserId(SecurityUtils.getUser().getId());
+        if(WatchTypeEnum.VIDEO.name().equalsIgnoreCase(watchHistoryDeleteAllDTO.getType())){
+            remoteSubstanceService.deletePlayAll(substancePlayRecordDeleteDTO, SecurityConstants.FROM_IN);
+        }else if(WatchTypeEnum.ROOM.name().equalsIgnoreCase(watchHistoryDeleteAllDTO.getType())){
+            //删除直播
+        }else {
+            //删除所有
+            remoteSubstanceService.deletePlayAll(substancePlayRecordDeleteDTO, SecurityConstants.FROM_IN);
+            //删除直播
+        }
     }
 }

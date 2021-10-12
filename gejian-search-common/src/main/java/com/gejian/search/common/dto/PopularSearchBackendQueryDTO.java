@@ -5,22 +5,22 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 /**
  * @author lijianghuai
  * @date 2021-09-08
  */
 @Data
-@ApiModel("管理后台查询高频关键字dto")
+@ApiModel("管理后台查询热搜词统计dto")
 public class PopularSearchBackendQueryDTO extends BasePageQuery {
 
-    @ApiModelProperty("开始时间")
-    private LocalDateTime startedAt;
+    @ApiModelProperty(value = "统计时间-开始",example = "2021-10-01")
+    private LocalDate startedAt;
 
-    @ApiModelProperty("结束时间")
-    private LocalDateTime terminatedAt;
+    @ApiModelProperty(value = "统计时间-结束",example = "2021-10-10")
+    private LocalDate terminatedAt;
 
-    @ApiModelProperty("搜索文本")
+    @ApiModelProperty("热搜词")
     private String content;
 }

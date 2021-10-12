@@ -2,9 +2,11 @@ package com.gejian.search.web.controller.app;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gejian.common.core.util.R;
+import com.gejian.search.common.dto.WatchHistoryDeleteAllDTO;
+import com.gejian.search.common.dto.WatchHistoryDeleteDTO;
 import com.gejian.search.common.dto.WatchHistoryQueryDTO;
+import com.gejian.search.common.dto.WatchHistoryResponseDTO;
 import com.gejian.search.web.service.WatchHistoryService;
-import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * @author ：lijianghuai
@@ -29,7 +32,7 @@ public class WatchHistoryController {
     @Autowired
     private WatchHistoryService watchHistoryService;
 
-    @PostMapping("/video")
+   /* @PostMapping("/video")
     @ApiOperation("视频历史列表")
     public R<Page<OnlineSearchDTO>> searchSubstance(@Valid @RequestBody  WatchHistoryQueryDTO watchHistoryQueryDTO){
         return R.ok(watchHistoryService.searchSubstance(watchHistoryQueryDTO));
@@ -39,5 +42,25 @@ public class WatchHistoryController {
     @ApiOperation("直播历史记录")
     public R<Page<OnlineSearchDTO>> searchRoom(@Valid @RequestBody  WatchHistoryQueryDTO watchHistoryQueryDTO){
         return R.ok(watchHistoryService.searchRoom(watchHistoryQueryDTO));
+    }*/
+
+    @PostMapping("")
+    @ApiOperation("播放历史记录")
+    public R<Page<WatchHistoryResponseDTO>> search(@Valid @RequestBody  WatchHistoryQueryDTO watchHistoryQueryDTO){
+        return R.ok(watchHistoryService.search(watchHistoryQueryDTO));
+    }
+
+    @PostMapping("/delete")
+    @ApiOperation("删除播放历史记录")
+    public R<Void> delete(@Valid @RequestBody List<WatchHistoryDeleteDTO> watchHistoryDeleteDTOs){
+        watchHistoryService.delete(watchHistoryDeleteDTOs);
+        return R.ok();
+    }
+
+    @PostMapping("/delete/all")
+    @ApiOperation("删除播放历史记录,参数为空，则删除所有")
+    public R<Void> deleteAll(@Valid @RequestBody WatchHistoryDeleteAllDTO watchHistoryDeleteAllDTO){
+        watchHistoryService.deleteAll(watchHistoryDeleteAllDTO);
+        return R.ok();
     }
 }

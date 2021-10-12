@@ -17,18 +17,25 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel("热门搜索关键字")
+@ApiModel("热搜词统计dto")
 public class PopularSearchBackendResultDTO {
 
     /**
-     * 高频词
+     * 热搜词
      */
-    @ApiModelProperty("高频关键字")
+    @ApiModelProperty("热搜词")
     private String keyword;
 
     /**
-     * 出现次数
+     * 搜索指数
      */
-    @ApiModelProperty("出现次数")
+    @ApiModelProperty("搜索指数")
     private Long count;
+
+
+    /**
+     * 上榜状态
+     */
+    @ApiModelProperty("上榜状态")
+    private Boolean ranked;
 }

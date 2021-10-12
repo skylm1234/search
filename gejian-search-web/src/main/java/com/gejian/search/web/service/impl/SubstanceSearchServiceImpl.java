@@ -2,27 +2,29 @@ package com.gejian.search.web.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gejian.common.core.constant.SecurityConstants;
-import com.gejian.common.core.util.R;
 import com.gejian.common.core.util.acautomation.ACAutomationSearch;
+import com.gejian.common.minio.annotation.MinioResponse;
 import com.gejian.common.security.service.GeJianUser;
+import com.gejian.search.common.constant.BasicConstant;
 import com.gejian.search.common.constant.UserVideoIndexConstant;
+import com.gejian.search.common.dto.SubstanceOnlineResponseDTO;
 import com.gejian.search.common.dto.SubstanceSearchDTO;
 import com.gejian.search.common.dto.UserSearchDTO;
 import com.gejian.search.common.enums.SearchTypeEnum;
 import com.gejian.search.common.index.SubstanceOnlineIndex;
 import com.gejian.search.common.index.UserVideoIndex;
 import com.gejian.search.web.executor.AsyncExecutor;
-import com.gejian.search.web.service.HistorySearchBackendService;
+import com.gejian.search.web.service.SearchHistoryService;
 import com.gejian.search.web.service.RedisSearchService;
 import com.gejian.search.web.service.SubstanceSearchService;
-import com.gejian.substance.client.dto.online.app.view.OnlineSearchDTO;
-import com.gejian.substance.client.dto.online.rpc.RpcOnlineSearchDTO;
 import com.gejian.substance.client.dto.video.UserSearchVideoViewDTO;
 import com.gejian.substance.client.dto.video.app.AppUserSearchVideoDTO;
 import com.gejian.substance.client.feign.RemoteSubstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.MatchPhraseQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -32,6 +34,7 @@ import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -40,7 +43,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.*;
+import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_CLASSIFY_ID;
+import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_CREATE_USER_NICKNAME;
+import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_DELETED;
+import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_VIDEO_INTRODUCE;
+import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_VIDEO_LENGTH;
+import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_VIDEO_TITLE;
 
 /**
  * @author ：lijianghuai
@@ -56,16 +64,17 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
     private ElasticsearchRestTemplate elasticsearchRestTemplate;
 
     @Autowired
-    private RemoteSubstanceService remoteSubstanceService;
-
-    @Autowired
     private RedisSearchService redisSearchService;
 
     @Autowired
-    private HistorySearchBackendService historySearchBackendService;
+    private RemoteSubstanceService remoteSubstanceService;
 
+    @Autowired
+    private SearchHistoryService historySearchBackendService;
+
+    @MinioResponse
     @Override
-    public Page<OnlineSearchDTO> search(SubstanceSearchDTO substanceSearchDTO) {
+    public Page<SubstanceOnlineResponseDTO> search(SubstanceSearchDTO substanceSearchDTO) {
 
         if (!StringUtils.hasText(substanceSearchDTO.getContent())) {
             return new Page<>();
@@ -76,36 +85,43 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
         }
         AsyncExecutor.execute(() -> redisSearchService.setHistorySearch(substanceSearchDTO.getContent()));
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
+        BoolQueryBuilder innerBoolQueryBuilder = new BoolQueryBuilder();
         if (substanceSearchDTO.getSearchType() == null || substanceSearchDTO.getSearchType() == SearchTypeEnum.VIDEO) {
-            boolQueryBuilder.must(QueryBuilders.multiMatchQuery(substanceSearchDTO.getContent(), FIELD_VIDEO_TITLE, FIELD_VIDEO_INTRODUCE));
+            innerBoolQueryBuilder.must(QueryBuilders.multiMatchQuery(substanceSearchDTO.getContent(), FIELD_VIDEO_TITLE, FIELD_VIDEO_INTRODUCE).analyzer(BasicConstant.IK_SMART));
         } else {
-            boolQueryBuilder.must(QueryBuilders.matchQuery(FIELD_CREATE_USER_NICKNAME, substanceSearchDTO.getContent()));
+            innerBoolQueryBuilder.must(QueryBuilders.matchQuery(FIELD_CREATE_USER_NICKNAME, substanceSearchDTO.getContent()));
         }
         if (substanceSearchDTO.getVideoLengthGt() != null || substanceSearchDTO.getVideoLengthLt() != null) {
             if (substanceSearchDTO.getVideoLengthGt() != null) {
-                boolQueryBuilder.must(QueryBuilders.rangeQuery(FIELD_VIDEO_LENGTH).gte(substanceSearchDTO.getVideoLengthGt() * 60 * 1000));
+                innerBoolQueryBuilder.filter(QueryBuilders.rangeQuery(FIELD_VIDEO_LENGTH).gte(substanceSearchDTO.getVideoLengthGt() * 60 * 1000));
             }
             if (substanceSearchDTO.getVideoLengthLt() != null) {
-                boolQueryBuilder.must(QueryBuilders.rangeQuery(FIELD_VIDEO_LENGTH).lte(substanceSearchDTO.getVideoLengthLt() * 60 * 1000));
+                innerBoolQueryBuilder.filter(QueryBuilders.rangeQuery(FIELD_VIDEO_LENGTH).lte(substanceSearchDTO.getVideoLengthLt() * 60 * 1000));
             }
         }
         if (substanceSearchDTO.getClassifyId() != null) {
-            boolQueryBuilder.must(QueryBuilders.termQuery(FIELD_CLASSIFY_ID, substanceSearchDTO.getClassifyId()));
+            innerBoolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_CLASSIFY_ID, substanceSearchDTO.getClassifyId()));
         }
-        boolQueryBuilder.must(QueryBuilders.termQuery(FIELD_DELETED, false));
+        innerBoolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_DELETED, false));
+        MatchPhraseQueryBuilder phraseQueryBuilder = new MatchPhraseQueryBuilder(FIELD_VIDEO_TITLE,substanceSearchDTO.getContent());
+        boolQueryBuilder.should(innerBoolQueryBuilder).should(phraseQueryBuilder);
         NativeSearchQuery nativeSearchQuery = new NativeSearchQuery(boolQueryBuilder);
         PageRequest pageRequest = page(substanceSearchDTO);
         nativeSearchQuery.setPageable(pageRequest);
         SearchHits<SubstanceOnlineIndex> searchHits = elasticsearchRestTemplate.search(nativeSearchQuery, SubstanceOnlineIndex.class);
-        if (searchHits.getTotalHits() <= 0) {
+        if (searchHits.getTotalHits() <= 0 ) {
             return new Page<>();
         }
         List<SubstanceOnlineIndex> contents = searchHits.stream().map(SearchHit::getContent).collect(Collectors.toList());
-        RpcOnlineSearchDTO rpcOnlineSearchDTO = new RpcOnlineSearchDTO();
-        rpcOnlineSearchDTO.setIds(contents.stream().map(SubstanceOnlineIndex::getId).collect(Collectors.toList()));
-        final R<List<OnlineSearchDTO>> listR = remoteSubstanceService.search(rpcOnlineSearchDTO, SecurityConstants.FROM_IN);
-        AsyncExecutor.execute(() -> historySearchBackendService.insert(substanceSearchDTO.getContent()));
-        return new Page<OnlineSearchDTO>(substanceSearchDTO.getCurrent(), substanceSearchDTO.getSize(), searchHits.getTotalHits()).setRecords(listR.getData());
+        if (CollectionUtils.isEmpty(contents)) {
+            return new Page<>();
+        }
+        List<SubstanceOnlineResponseDTO> responseDTOS = contents.stream().map(substanceOnlineIndex -> {
+            SubstanceOnlineResponseDTO substanceOnlineResponseDTO = new SubstanceOnlineResponseDTO();
+            BeanUtils.copyProperties(substanceOnlineIndex, substanceOnlineResponseDTO);
+            return substanceOnlineResponseDTO;
+        }).collect(Collectors.toList());
+        return new Page<SubstanceOnlineResponseDTO>(substanceSearchDTO.getCurrent(), substanceSearchDTO.getSize(), searchHits.getTotalHits()).setRecords(responseDTOS);
     }
 
     @Override
@@ -121,7 +137,7 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
                 .withQuery(QueryBuilders.termQuery(UserVideoIndexConstant.CREATE_USER_ID, ObjectUtils.isEmpty(userSearchDTO.getLookUserId()) ? geJianUser.getId()
                         : userSearchDTO.getLookUserId()))
                 // 分页
-                .withPageable(PageRequest.of((userSearchDTO.getCurrent() - 1) * userSearchDTO.getSize(), userSearchDTO.getSize()))
+                .withPageable(PageRequest.of((userSearchDTO.getCurrent() - 1), userSearchDTO.getSize()))
                 .build();
         SearchHits<UserVideoIndex> searchHits = elasticsearchRestTemplate.search(nativeSearchQuery, UserVideoIndex.class);
         if (searchHits.getTotalHits() <= 0) {
@@ -146,7 +162,7 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
             substanceSearchDTO.setSize(10);
         }
 
-        PageRequest pageRequest = PageRequest.of((substanceSearchDTO.getCurrent() - 1) * substanceSearchDTO.getSize(), substanceSearchDTO.getSize());
+        PageRequest pageRequest = PageRequest.of((substanceSearchDTO.getCurrent() - 1) , substanceSearchDTO.getSize());
         if (substanceSearchDTO.getOrderField() != null) {
             Optional<String> fieldMapping = substanceSearchDTO.getOrderField().fieldMapping();
             if (fieldMapping.isPresent()) {
