@@ -20,4 +20,10 @@ public class UserSearchDTO extends BasePageQuery {
     @ApiModelProperty(value = "搜索关键词", required = false)
     private String keywork;
 
+    /**
+     * 查看的用户IDS
+     */
+    @ApiModelProperty(value = "查看的用户ID", required = false)
+    private String lookUserId;
+
 }
