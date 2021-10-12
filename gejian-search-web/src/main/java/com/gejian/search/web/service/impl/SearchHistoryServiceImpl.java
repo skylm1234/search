@@ -30,6 +30,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
@@ -56,10 +57,10 @@ public class SearchHistoryServiceImpl implements SearchHistoryService {
     public Page<PopularSearchBackendResultDTO> queryPopularWords(PopularSearchBackendQueryDTO popularBackendSearchDTO) {
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         if (popularBackendSearchDTO.getStartedAt() != null) {
-            boolQueryBuilder.filter(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).gte(popularBackendSearchDTO.getStartedAt().toEpochSecond(ZoneOffset.ofHours(8))));
+            boolQueryBuilder.filter(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).gte(popularBackendSearchDTO.getStartedAt().atStartOfDay().toEpochSecond(ZoneOffset.ofHours(8))));
         }
         if (popularBackendSearchDTO.getTerminatedAt() != null) {
-            boolQueryBuilder.filter(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).lte(popularBackendSearchDTO.getTerminatedAt().toEpochSecond(ZoneOffset.ofHours(8))));
+            boolQueryBuilder.filter(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).lte(popularBackendSearchDTO.getTerminatedAt().atTime(LocalTime.MAX).toEpochSecond(ZoneOffset.ofHours(8))));
         }
         if(popularBackendSearchDTO.getStartedAt() == null && popularBackendSearchDTO.getTerminatedAt() == null){
             boolQueryBuilder.filter(QueryBuilders.rangeQuery(SearchHistoryIndexConstant.FIELD_CREATE_TIME).gte(LocalDateTime.now().minusDays(7).toEpochSecond(ZoneOffset.ofHours(8))));
@@ -70,7 +71,7 @@ public class SearchHistoryServiceImpl implements SearchHistoryService {
         NativeSearchQuery nativeSearchQuery = new NativeSearchQuery(boolQueryBuilder);
         nativeSearchQuery.setMaxResults(0);
         TermsAggregationBuilder termsAggregationBuilder = AggregationBuilders.terms("popular").field(SearchHistoryIndexConstant.FIELD_CONTENT)
-                .includeExclude(new IncludeExclude(null,"[\\u4E00-\\u9FA5,a-z,A-Z,0-9]")).size(100000);
+                .includeExclude(new IncludeExclude(null,"[\u4E00-\u9FA5,a-z,A-Z,0-9]")).size(100000);
         nativeSearchQuery.addAggregation(termsAggregationBuilder);
         Aggregations aggregations = elasticsearchRestTemplate.search(nativeSearchQuery, SearchHistoryIndex.class).getAggregations();
         if (aggregations != null) {
