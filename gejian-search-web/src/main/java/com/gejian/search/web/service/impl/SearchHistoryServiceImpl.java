@@ -32,6 +32,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -77,9 +78,19 @@ public class SearchHistoryServiceImpl implements SearchHistoryService {
         if (aggregations != null) {
             ParsedStringTerms popular = aggregations.get("popular");
             List<? extends Terms.Bucket> buckets = popular.getBuckets();
-            List<PopularSearchBackendResultDTO> popularBackendResultDTOList = sub(buckets, popularBackendSearchDTO).stream().map(bucket -> PopularSearchBackendResultDTO.builder().keyword(bucket.getKeyAsString()).count(bucket.getDocCount()).build()).collect(Collectors.toList());
-            int total = buckets.size();
-            return new Page<PopularSearchBackendResultDTO>(popularBackendSearchDTO.getCurrent(), popularBackendSearchDTO.getSize(), total).setRecords(popularBackendResultDTOList);
+            List<? extends Terms.Bucket> sub = sub(buckets, popularBackendSearchDTO);
+            if(CollectionUtils.isEmpty(sub)){
+                return new Page<>();
+            }
+            int rankOrder = (popularBackendSearchDTO.getCurrent() - 1) * popularBackendSearchDTO.getSize();
+            List<PopularSearchBackendResultDTO> popularBackendResultDTOList = new ArrayList<>();
+            for(int i = 0; i < sub.size(); i++){
+                Terms.Bucket bucket = sub.get(i);
+                PopularSearchBackendResultDTO popularSearchBackendResultDTO = PopularSearchBackendResultDTO.builder().keyword(bucket.getKeyAsString())
+                        .count(bucket.getDocCount()).rank(rankOrder + i + 1).build();
+                popularBackendResultDTOList.add(popularSearchBackendResultDTO);
+            }
+            return new Page<PopularSearchBackendResultDTO>(popularBackendSearchDTO.getCurrent(), popularBackendSearchDTO.getSize(), buckets.size()).setRecords(popularBackendResultDTOList);
         }
         return new Page<>();
     }

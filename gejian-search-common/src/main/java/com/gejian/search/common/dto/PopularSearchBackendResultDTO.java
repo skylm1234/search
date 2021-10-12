@@ -37,5 +37,8 @@ public class PopularSearchBackendResultDTO {
      * 上榜状态
      */
     @ApiModelProperty("上榜状态")
-    private Boolean ranked;
+    private boolean ranked;
+
+    @ApiModelProperty("排名")
+    private int rank;
 }
