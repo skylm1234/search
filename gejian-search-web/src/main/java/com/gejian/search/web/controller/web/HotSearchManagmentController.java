@@ -50,7 +50,7 @@ public class HotSearchManagmentController {
     }
 
     @PostMapping("/delete")
-    @ApiOperation("修改热搜话题")
+    @ApiOperation("删除热搜话题")
     public R deleteHotSearch(@Valid @RequestBody HotSearchDeleteDTO hotSearchDeleteDTO){
         return R.ok(hotSearchService.deleteHotSearch(hotSearchDeleteDTO));
     }

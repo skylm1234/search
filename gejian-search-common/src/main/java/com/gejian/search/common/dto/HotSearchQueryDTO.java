@@ -10,10 +10,10 @@ import lombok.Data;
  * @date 2021-10-11
  */
 @Data
-@ApiModel("热搜新增/编辑dto")
+@ApiModel("热搜搜索dto")
 public class HotSearchQueryDTO extends BasePageQuery {
 
-    @ApiModelProperty("话题内容")
+    @ApiModelProperty(value = "话题内容")
     private String content;
 
 }
