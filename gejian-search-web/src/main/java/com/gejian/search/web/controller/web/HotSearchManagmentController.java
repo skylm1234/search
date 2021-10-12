@@ -1,8 +1,10 @@
 package com.gejian.search.web.controller.web;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.gejian.search.common.dto.PopularSearchBackendQueryDTO;
-import com.gejian.search.common.dto.PopularSearchBackendResultDTO;
+import com.gejian.common.core.util.R;
+import com.gejian.search.common.dto.*;
+import com.gejian.search.web.service.HotSearchService;
 import com.gejian.search.web.service.SearchHistoryService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -26,10 +28,42 @@ public class HotSearchManagmentController {
 
     @Autowired
     private SearchHistoryService searchHistoryService;
+    @Autowired
+    private HotSearchService hotSearchService;
 
     @PostMapping("/statistics")
     @ApiOperation("热搜词统计")
     public Page<PopularSearchBackendResultDTO> hotSearchWordsCount(@Valid @RequestBody PopularSearchBackendQueryDTO popularSearchBackendQueryDTO){
         return searchHistoryService.queryPopularWords(popularSearchBackendQueryDTO);
+    }
+
+    @PostMapping("/save")
+    @ApiOperation("添加热搜话题")
+    public R saveHotSearch(@Valid @RequestBody HotSearchDTO hotSearchDTO){
+        return R.ok(hotSearchService.saveHotSearch(hotSearchDTO));
+    }
+
+    @PostMapping("/update")
+    @ApiOperation("修改热搜话题")
+    public R updateHotSearch(@Valid @RequestBody HotSearchUpdateDTO hotSearchUpdateDTO){
+        return R.ok(hotSearchService.updateHotSearch(hotSearchUpdateDTO));
+    }
+
+    @PostMapping("/delete")
+    @ApiOperation("修改热搜话题")
+    public R deleteHotSearch(@Valid @RequestBody HotSearchDeleteDTO hotSearchDeleteDTO){
+        return R.ok(hotSearchService.deleteHotSearch(hotSearchDeleteDTO));
+    }
+
+    @PostMapping("/stick")
+    @ApiOperation("置顶热搜话题")
+    public R stickHotSearch(@Valid @RequestBody HotSearchStickDTO hotSearchStickDTO){
+        return R.ok(hotSearchService.stickHotSearch(hotSearchStickDTO));
+    }
+
+    @PostMapping("/page")
+    @ApiOperation("热搜话题分页查询")
+    public R<IPage<HotSearchResponseDTO>> pageHotSearch(@Valid @RequestBody HotSearchQueryDTO hotSearchQueryDTO){
+        return  R.ok(hotSearchService.pageHotSearch(hotSearchQueryDTO));
     }
 }

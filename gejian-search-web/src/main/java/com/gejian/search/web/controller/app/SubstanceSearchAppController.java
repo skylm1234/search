@@ -7,16 +7,13 @@ import com.gejian.search.common.dto.MyHistorySearchQueryDTO;
 import com.gejian.search.common.dto.PopularSearchDTO;
 import com.gejian.search.common.dto.SubstanceOnlineResponseDTO;
 import com.gejian.search.common.dto.SubstanceSearchDTO;
+import com.gejian.search.web.service.HotSearchService;
 import com.gejian.search.web.service.RedisSearchService;
 import com.gejian.search.web.service.SubstanceSearchService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -38,6 +35,8 @@ public class SubstanceSearchAppController {
 
     @Autowired
     private RedisSearchService redisSearchService;
+    @Autowired
+    private HotSearchService hotSearchService;
 
     @PostMapping("/substance")
     @ApiOperation("全局搜索视频，无需认证")
@@ -49,7 +48,8 @@ public class SubstanceSearchAppController {
     @ApiOperation("热门搜索")
     public R<List<String>> popular(@RequestBody @Valid PopularSearchDTO popularSearchDTO) {
         Integer size = popularSearchDTO.getSize();
-        return R.ok(redisSearchService.getHotSearchList(size));
+//        return R.ok(redisSearchService.getHotSearchList(size));
+        return R.ok(hotSearchService.getHotSearchList(size));
     }
 
     @PostMapping("/history")
@@ -65,5 +65,6 @@ public class SubstanceSearchAppController {
         redisSearchService.deleteHistorySearch(content);
         return R.ok();
     }
+
 
 }
