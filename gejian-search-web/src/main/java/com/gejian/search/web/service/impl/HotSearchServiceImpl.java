@@ -49,7 +49,14 @@ public class HotSearchServiceImpl implements HotSearchService {
     @Override
     public Boolean saveHotSearch(HotSearchDTO hotSearchDTO) {
         try {
-            updateReduceRanking(hotSearchDTO.getRanking(), HotSearchIndexConstant.MAX_RANKING);
+            //新增话题是否需要置顶
+            if (hotSearchDTO.getStick()){
+                //需要则将之前置顶的话题放置对应位置
+                getStickHotSearch();
+            } else {
+                //不需要则将新增话题排名后的依次顺延
+                updateReduceRanking(hotSearchDTO.getRanking(), HotSearchIndexConstant.MAX_RANKING);
+            }
             HotSearchIndex hotSearchIndex = HotSearchIndex.builder()
                     .content(hotSearchDTO.getContent())
                     .associatedWord(hotSearchDTO.getAssociatedWord())
