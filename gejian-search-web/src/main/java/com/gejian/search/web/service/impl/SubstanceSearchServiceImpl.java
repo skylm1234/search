@@ -118,7 +118,8 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
                 // 模糊查询
                 .withQuery(QueryBuilders.fuzzyQuery(UserVideoIndexConstant.FIELD_VIDEO_TITLE, userSearchDTO.getKeywork()))
                 .withQuery(QueryBuilders.fuzzyQuery(UserVideoIndexConstant.FIELD_VIDEO_INTRODUCE, userSearchDTO.getKeywork()))
-                .withQuery(QueryBuilders.termQuery(UserVideoIndexConstant.CREATE_USER_ID, geJianUser.getId()))
+                .withQuery(QueryBuilders.termQuery(UserVideoIndexConstant.CREATE_USER_ID, ObjectUtils.isEmpty(userSearchDTO.getLookUserId()) ? geJianUser.getId()
+                        : userSearchDTO.getLookUserId()))
                 // 分页
                 .withPageable(PageRequest.of((userSearchDTO.getCurrent() - 1) * userSearchDTO.getSize(), userSearchDTO.getSize()))
                 .build();
@@ -136,6 +137,8 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
     }
 
     private PageRequest page(SubstanceSearchDTO substanceSearchDTO) {
+
+
         if (substanceSearchDTO.getCurrent() == null) {
             substanceSearchDTO.setCurrent(1);
         }
