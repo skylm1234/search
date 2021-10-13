@@ -26,7 +26,7 @@ public enum HotSearchTypeEnum {
 	 private String type;
 
 	public static HotSearchTypeEnum getType(Integer code) {
-		return Arrays.asList(HotSearchTypeEnum.values()).stream()
+		return Arrays.stream(HotSearchTypeEnum.values())
 				.filter(hotSearchTypeEnum -> hotSearchTypeEnum.getCode().equals(code))
 				.findFirst().orElse(HotSearchTypeEnum.NONE_TOPIC);
 	}
