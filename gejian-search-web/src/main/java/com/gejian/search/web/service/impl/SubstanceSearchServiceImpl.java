@@ -1,5 +1,6 @@
 package com.gejian.search.web.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gejian.common.core.constant.SecurityConstants;
 import com.gejian.common.core.util.acautomation.ACAutomationSearch;
@@ -120,25 +121,22 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
 
     @Override
     public List<UserSearchVideoViewDTO> searchUserVideo(UserSearchDTO userSearchDTO, GeJianUser geJianUser) {
-        if (ObjectUtils.isEmpty(userSearchDTO.getKeywork())) {
-            return new ArrayList<>();
+        BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
+        boolQueryBuilder.filter(QueryBuilders.termQuery(UserVideoIndexConstant.CREATE_USER_ID, ObjectUtils.isEmpty(userSearchDTO.getLookUserId()) ? geJianUser.getId() : userSearchDTO.getLookUserId()));
+        if(StrUtil.isNotBlank(userSearchDTO.getKeywork())){
+            boolQueryBuilder.must(QueryBuilders.multiMatchQuery(userSearchDTO.getKeywork(),UserVideoIndexConstant.FIELD_VIDEO_TITLE,UserVideoIndexConstant.FIELD_VIDEO_INTRODUCE).analyzer(BasicConstant.IK_SMART));
         }
-
         NativeSearchQuery nativeSearchQuery = new NativeSearchQueryBuilder()
-                .withFilter(QueryBuilders.termQuery(UserVideoIndexConstant.CREATE_USER_ID, ObjectUtils.isEmpty(userSearchDTO.getLookUserId()) ? geJianUser.getId() : userSearchDTO.getLookUserId()))
-                .withQuery(QueryBuilders.multiMatchQuery(userSearchDTO.getKeywork(),UserVideoIndexConstant.FIELD_VIDEO_TITLE,UserVideoIndexConstant.FIELD_VIDEO_INTRODUCE).analyzer(BasicConstant.IK_SMART))
-                // 分页
+                .withQuery(boolQueryBuilder)
                 .withPageable(PageRequest.of((userSearchDTO.getCurrent() - 1), userSearchDTO.getSize()))
                 .build();
         SearchHits<UserVideoIndex> searchHits = elasticsearchRestTemplate.search(nativeSearchQuery, UserVideoIndex.class);
         if (searchHits.getTotalHits() <= 0) {
             return new ArrayList<>();
         }
-
         List<Long> videoIds = searchHits.stream().map(searchHit -> searchHit.getContent().getId()).collect(Collectors.toList());
         AppUserSearchVideoDTO appUserSearchVideoDTO = new AppUserSearchVideoDTO();
         appUserSearchVideoDTO.setVideoIds(videoIds);
-
         return remoteSubstanceService.searchUserVideo(appUserSearchVideoDTO, SecurityConstants.FROM_IN).getData();
     }
 
