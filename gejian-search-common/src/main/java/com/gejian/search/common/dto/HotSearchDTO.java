@@ -17,7 +17,6 @@ import java.io.Serializable;
 public class HotSearchDTO implements Serializable {
 
     @ApiModelProperty("话题排名")
-    @NotNull(message = "话题排名不能为空")
     private Integer ranking;
 
     @ApiModelProperty("话题内容")

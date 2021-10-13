@@ -52,7 +52,7 @@ public class HotSearchServiceImpl implements HotSearchService {
             //新增话题是否需要置顶
             if (hotSearchDTO.getStick()){
                 //需要则将之前置顶的话题放置对应位置
-                getStickHotSearch(hotSearchDTO.getRanking());
+                getStickHotSearch(null, true);
             } else {
                 //不需要则将新增话题排名后的依次顺延
                 updateReduceRanking(hotSearchDTO.getRanking(), HotSearchIndexConstant.MAX_RANKING);
@@ -82,9 +82,9 @@ public class HotSearchServiceImpl implements HotSearchService {
             Document document = Document.create();
             if (Objects.nonNull(hotSearchDTO.getStick())) {
                 if (hotSearchDTO.getStick()) {
-                    getStickHotSearch(hotSearchDTO.getRanking());
+                    getStickHotSearch(search.getRanking(), false);
                 } else {
-                    updateReduceRanking(hotSearchDTO.getRanking(), HotSearchIndexConstant.MAX_RANKING);
+                    updateReduceRanking(search.getRanking(), HotSearchIndexConstant.MAX_RANKING);
                 }
                 document.putIfAbsent(HotSearchIndexConstant.FIELD_STICK, hotSearchDTO.getStick());
             } else if (Objects.nonNull(hotSearchDTO.getRanking()) && !search.getStick()) {
@@ -146,7 +146,7 @@ public class HotSearchServiceImpl implements HotSearchService {
     @Override
     public Boolean stickHotSearch(HotSearchStickDTO hotSearchStickDTO) {
         try {
-            getStickHotSearch(hotSearchStickDTO.getRanking());
+            getStickHotSearch(hotSearchStickDTO.getRanking(), false);
             Document document = Document.create();
             document.putIfAbsent(HotSearchIndexConstant.FIELD_STICK, true);
             document.putIfAbsent(HotSearchIndexConstant.FIELD_RANKING, hotSearchStickDTO.getRanking());
@@ -161,9 +161,11 @@ public class HotSearchServiceImpl implements HotSearchService {
     }
 
     /**
-     * 查询是否存在置顶话题，若存在就放置于对应排名处
+     * 查询是否存在置顶话题，若存在就放置于对应排名处,并修改排名
+     * @param ranking
+     * @param isSave
      */
-    private void getStickHotSearch(Integer ranking) {
+    private void getStickHotSearch(Integer ranking, Boolean isSave) {
         //查询是否存在置顶话题
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_DELETED, false));
@@ -173,16 +175,30 @@ public class HotSearchServiceImpl implements HotSearchService {
                 .build();
         SearchHits<HotSearchIndex> search = elasticsearchRestTemplate.search(searchQuery, HotSearchIndex.class);
         if (search.getTotalHits() > 0) {
-            if (search.getSearchHit(0).getContent().getRanking() < ranking) {
-                updateReduceRanking(ranking, search.getSearchHit(0).getContent().getRanking());
-            } else {
-                updateIncreaseRanking(search.getSearchHit(0).getContent().getRanking(), ranking);
-            }
             Document document = Document.create();
+            //若存在旧置顶话题
+            if (Objects.isNull(search.getSearchHit(0).getContent().getRanking())){
+                //旧置顶话题不存在排名值
+                document.putIfAbsent(HotSearchIndexConstant.FIELD_DELETED, true);
+                updateIncreaseRanking(ranking, HotSearchIndexConstant.MAX_RANKING);
+            } else {
+                if (Objects.isNull(ranking)){
+                    ranking = HotSearchIndexConstant.MAX_RANKING;
+                }
+                //旧置顶话题存在排名值
+                if (search.getSearchHit(0).getContent().getRanking() < ranking) {
+                    updateReduceRanking(search.getSearchHit(0).getContent().getRanking(), ranking);
+                } else {
+                    updateIncreaseRanking(search.getSearchHit(0).getContent().getRanking(), ranking);
+                }
+            }
             document.putIfAbsent(HotSearchIndexConstant.FIELD_STICK, false);
             document.setId(search.getSearchHit(0).getContent().getId());
             UpdateQuery build = UpdateQuery.builder(search.getSearchHit(0).getContent().getId()).withDocument(document).withScriptedUpsert(true).build();
             elasticsearchRestTemplate.update(build, IndexCoordinates.of(HotSearchIndexConstant.INDEX_NAME));
+        } else if (!isSave){
+            //不存在旧的置顶话题
+            updateIncreaseRanking(ranking, HotSearchIndexConstant.MAX_RANKING);
         }
     }
 
@@ -235,24 +251,26 @@ public class HotSearchServiceImpl implements HotSearchService {
      * @param ranking
      */
     private void updateReduceRanking(Integer ranking, Integer ending){
+        if (Objects.isNull(ranking) || Objects.isNull(ending)){
+            return;
+        }
         //查询ranking位置是否有数据
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
-        boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_RANKING, ranking));
         boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_STICK, false));
         boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_DELETED, false));
-        boolQueryBuilder.must(QueryBuilders.rangeQuery(HotSearchIndexConstant.FIELD_RANKING).gt(ranking).lte(ending));
+        boolQueryBuilder.must(QueryBuilders.rangeQuery(HotSearchIndexConstant.FIELD_RANKING).gte(ranking).lt(ending));
         NativeSearchQuery searchQuery = new NativeSearchQuery(boolQueryBuilder);
         SearchHits<HotSearchIndex> search = elasticsearchRestTemplate.search(searchQuery, HotSearchIndex.class);
 
         //判断是否有数据
         if (search.getTotalHits() > 0){
-            Integer[] rankings = search.stream().map(SearchHit::getContent).map(HotSearchIndex::getRanking).toArray(Integer[]::new);
-            int index = 0;
-            for (int i = 0; i < rankings.length - 1; i++) {
-                if (Objects.equals(rankings[i] + 1, rankings[i + 1])){
-                    index = i;
+            int[] rankings = search.stream().map(SearchHit::getContent).mapToInt(HotSearchIndex::getRanking).sorted().toArray();
+            int index = 1;
+            for (int i = 1; i < rankings.length ; i++) {
+                if (rankings[i] - 1 != rankings[i - 1]){
                     break;
                 }
+                index += i;
             }
             List<HotSearchIndex> contents = search.stream().map(SearchHit::getContent).collect(Collectors.toList()).subList(0, index);
 
@@ -283,6 +301,9 @@ public class HotSearchServiceImpl implements HotSearchService {
      * @param ranking
      */
     private void updateIncreaseRanking(Integer ranking, Integer ending){
+        if (Objects.isNull(ranking) || Objects.isNull(ending)){
+            return;
+        }
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_DELETED, false));
         boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_STICK, false));
