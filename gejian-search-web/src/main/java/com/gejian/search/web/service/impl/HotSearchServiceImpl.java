@@ -247,6 +247,14 @@ public class HotSearchServiceImpl implements HotSearchService {
         return contents.stream().map(HotSearchIndex::getContent).collect(Collectors.toList());
     }
 
+    @Override
+    public List<HotSearchIndex> findAll() {
+        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+                .withQuery(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_DELETED, false)).build();
+        SearchHits<HotSearchIndex> searchHits = elasticsearchRestTemplate.search(searchQuery, HotSearchIndex.class);
+        return searchHits.stream().map(SearchHit::getContent).collect(Collectors.toList());
+    }
+
     /**
      * 将排名低于等于ranking的话题排名依次降低一位
      * @param ranking
