@@ -27,6 +27,6 @@ public interface HotSearchIndexConstant {
     /** * 更新时间 */
     String FIELD_UPDATE_TIME = "update_time";
     /** * 最大排名值50 */
-    Integer MAX_RANKING = 51;
+    Integer MAX_RANKING = 50;
 
 }

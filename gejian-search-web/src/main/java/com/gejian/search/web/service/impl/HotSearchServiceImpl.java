@@ -182,14 +182,15 @@ public class HotSearchServiceImpl implements HotSearchService {
                 document.putIfAbsent(HotSearchIndexConstant.FIELD_DELETED, true);
                 updateIncreaseRanking(ranking, HotSearchIndexConstant.MAX_RANKING);
             } else {
+                int oldRanking = search.getSearchHit(0).getContent().getRanking();
                 if (Objects.isNull(ranking)){
                     ranking = HotSearchIndexConstant.MAX_RANKING;
                 }
                 //旧置顶话题存在排名值
                 if (search.getSearchHit(0).getContent().getRanking() < ranking) {
-                    updateReduceRanking(search.getSearchHit(0).getContent().getRanking(), ranking);
+                    updateReduceRanking(oldRanking, ranking);
                 } else {
-                    updateIncreaseRanking(search.getSearchHit(0).getContent().getRanking(), ranking);
+                    updateIncreaseRanking(ranking, oldRanking);
                 }
             }
             document.putIfAbsent(HotSearchIndexConstant.FIELD_STICK, false);
@@ -259,18 +260,21 @@ public class HotSearchServiceImpl implements HotSearchService {
         boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_STICK, false));
         boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_DELETED, false));
         boolQueryBuilder.must(QueryBuilders.rangeQuery(HotSearchIndexConstant.FIELD_RANKING).gte(ranking).lt(ending));
-        NativeSearchQuery searchQuery = new NativeSearchQuery(boolQueryBuilder);
+        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+                .withQuery(boolQueryBuilder)
+                .withSort(SortBuilders.fieldSort(HotSearchIndexConstant.FIELD_RANKING).order(SortOrder.ASC))
+                .build();
         SearchHits<HotSearchIndex> search = elasticsearchRestTemplate.search(searchQuery, HotSearchIndex.class);
 
         //判断是否有数据
         if (search.getTotalHits() > 0){
-            int[] rankings = search.stream().map(SearchHit::getContent).mapToInt(HotSearchIndex::getRanking).sorted().toArray();
+            int[] rankings = search.stream().map(SearchHit::getContent).mapToInt(HotSearchIndex::getRanking).toArray();
             int index = 1;
             for (int i = 1; i < rankings.length ; i++) {
                 if (rankings[i] - 1 != rankings[i - 1]){
                     break;
                 }
-                index += i;
+                index ++;
             }
             List<HotSearchIndex> contents = search.stream().map(SearchHit::getContent).collect(Collectors.toList()).subList(0, index);
 
