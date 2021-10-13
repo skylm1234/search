@@ -3,6 +3,7 @@ package com.gejian.search.web.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.gejian.search.common.constant.BasicConstant;
 import com.gejian.search.common.constant.HotSearchIndexConstant;
 import com.gejian.search.common.dto.*;
 import com.gejian.search.common.enums.HotSearchTypeEnum;
@@ -106,6 +107,7 @@ public class HotSearchServiceImpl implements HotSearchService {
             if (Objects.nonNull(hotSearchDTO.getRanking())) {
                 document.putIfAbsent(HotSearchIndexConstant.FIELD_RANKING, hotSearchDTO.getRanking());
             }
+            document.putIfAbsent(HotSearchIndexConstant.FIELD_UPDATE_TIME, LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(8)));
             document.setId(hotSearchDTO.getId());
             UpdateQuery build = UpdateQuery.builder(hotSearchDTO.getId()).withDocument(document).withScriptedUpsert(true).build();
             elasticsearchRestTemplate.update(build, IndexCoordinates.of(HotSearchIndexConstant.INDEX_NAME));
@@ -138,6 +140,7 @@ public class HotSearchServiceImpl implements HotSearchService {
     private void deleteTopic(String fieldDeleted, String id) {
         Document document = Document.create();
         document.putIfAbsent(fieldDeleted, true);
+        document.putIfAbsent(HotSearchIndexConstant.FIELD_UPDATE_TIME, LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(8)));
         document.setId(id);
         UpdateQuery build = UpdateQuery.builder(id).withDocument(document).withScriptedUpsert(true).build();
         elasticsearchRestTemplate.update(build, IndexCoordinates.of(HotSearchIndexConstant.INDEX_NAME));
@@ -149,6 +152,7 @@ public class HotSearchServiceImpl implements HotSearchService {
             getStickHotSearch(hotSearchStickDTO.getRanking(), false);
             Document document = Document.create();
             document.putIfAbsent(HotSearchIndexConstant.FIELD_STICK, true);
+            document.putIfAbsent(HotSearchIndexConstant.FIELD_UPDATE_TIME, LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(8)));
             document.putIfAbsent(HotSearchIndexConstant.FIELD_RANKING, hotSearchStickDTO.getRanking());
             document.setId(hotSearchStickDTO.getId());
             UpdateQuery build = UpdateQuery.builder(hotSearchStickDTO.getId()).withDocument(document).withScriptedUpsert(true).build();
@@ -168,8 +172,8 @@ public class HotSearchServiceImpl implements HotSearchService {
     private void getStickHotSearch(Integer ranking, Boolean isSave) {
         //查询是否存在置顶话题
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
-        boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_DELETED, false));
-        boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_STICK, true));
+        boolQueryBuilder.filter(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_DELETED, false));
+        boolQueryBuilder.filter(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_STICK, true));
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(boolQueryBuilder)
                 .build();
@@ -193,6 +197,7 @@ public class HotSearchServiceImpl implements HotSearchService {
                     updateIncreaseRanking(ranking, oldRanking);
                 }
             }
+            document.putIfAbsent(HotSearchIndexConstant.FIELD_UPDATE_TIME, LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(8)));
             document.putIfAbsent(HotSearchIndexConstant.FIELD_STICK, false);
             document.setId(search.getSearchHit(0).getContent().getId());
             UpdateQuery build = UpdateQuery.builder(search.getSearchHit(0).getContent().getId()).withDocument(document).withScriptedUpsert(true).build();
@@ -206,9 +211,9 @@ public class HotSearchServiceImpl implements HotSearchService {
     @Override
     public IPage<HotSearchResponseDTO> pageHotSearch(HotSearchQueryDTO hotSearchQueryDTO) {
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
-        boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_DELETED, false));
+        boolQueryBuilder.filter(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_DELETED, false));
         if (Objects.nonNull(hotSearchQueryDTO.getContent())){
-            boolQueryBuilder.must(QueryBuilders.matchQuery(HotSearchIndexConstant.FIELD_CONTENT, hotSearchQueryDTO.getContent()));
+            boolQueryBuilder.must(QueryBuilders.matchQuery(HotSearchIndexConstant.FIELD_CONTENT, hotSearchQueryDTO.getContent()).analyzer(BasicConstant.IK_SMART));
         }
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(boolQueryBuilder)
@@ -229,8 +234,8 @@ public class HotSearchServiceImpl implements HotSearchService {
     @Override
     public List<String> getHotSearchList(Integer size) {
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
-        boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_DELETED, false));
-        boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_STICK, false));
+        boolQueryBuilder.filter(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_DELETED, false));
+        boolQueryBuilder.filter(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_STICK, false));
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(boolQueryBuilder)
                 .withPageable(PageRequest.of(0, size))
@@ -240,11 +245,7 @@ public class HotSearchServiceImpl implements HotSearchService {
         if (search.getTotalHits() <= 0){
             return new ArrayList<>() ;
         }
-        List<HotSearchIndex> contents = search.stream().map(SearchHit::getContent).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(contents)) {
-            return new ArrayList<>() ;
-        }
-        return contents.stream().map(HotSearchIndex::getContent).collect(Collectors.toList());
+        return search.stream().map(searchHit -> searchHit.getContent().getContent()).collect(Collectors.toList());
     }
 
     @Override
@@ -265,8 +266,8 @@ public class HotSearchServiceImpl implements HotSearchService {
         }
         //查询ranking位置是否有数据
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
-        boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_STICK, false));
-        boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_DELETED, false));
+        boolQueryBuilder.filter(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_STICK, false));
+        boolQueryBuilder.filter(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_DELETED, false));
         boolQueryBuilder.must(QueryBuilders.rangeQuery(HotSearchIndexConstant.FIELD_RANKING).gte(ranking).lt(ending));
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(boolQueryBuilder)
@@ -276,7 +277,7 @@ public class HotSearchServiceImpl implements HotSearchService {
 
         //判断是否有数据
         if (search.getTotalHits() > 0){
-            int[] rankings = search.stream().map(SearchHit::getContent).mapToInt(HotSearchIndex::getRanking).toArray();
+            int[] rankings = search.stream().mapToInt(searchHit -> searchHit.getContent().getRanking()).toArray();
             if (rankings[0] != ranking){
                 return;
             }
@@ -296,6 +297,7 @@ public class HotSearchServiceImpl implements HotSearchService {
                         deleteTopic(HotSearchIndexConstant.FIELD_DELETED, hotSearchIndex.getId());
                     } else {
                         Document document = Document.create();
+                        document.putIfAbsent(HotSearchIndexConstant.FIELD_UPDATE_TIME, LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(8)));
                         document.putIfAbsent(HotSearchIndexConstant.FIELD_RANKING, hotSearchIndex.getRanking() + 1);
                         document.setId(hotSearchIndex.getId());
                         UpdateQuery build = UpdateQuery.builder(hotSearchIndex.getId()).withDocument(document).withScriptedUpsert(true).build();
@@ -320,8 +322,8 @@ public class HotSearchServiceImpl implements HotSearchService {
             return;
         }
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
-        boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_DELETED, false));
-        boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_STICK, false));
+        boolQueryBuilder.filter(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_DELETED, false));
+        boolQueryBuilder.filter(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_STICK, false));
         boolQueryBuilder.must(QueryBuilders.rangeQuery(HotSearchIndexConstant.FIELD_RANKING).gt(ranking).lte(ending));
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(boolQueryBuilder)
@@ -335,6 +337,7 @@ public class HotSearchServiceImpl implements HotSearchService {
                 hotSearchList.forEach(hotSearchIndex -> {
                     Document document = Document.create();
                     document.putIfAbsent(HotSearchIndexConstant.FIELD_RANKING, hotSearchIndex.getRanking() - 1);
+                    document.putIfAbsent(HotSearchIndexConstant.FIELD_UPDATE_TIME, LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(8)));
                     document.setId(hotSearchIndex.getId());
                     UpdateQuery build = UpdateQuery.builder(hotSearchIndex.getId()).withDocument(document).withScriptedUpsert(true).build();
                     updateQueryList.add(build);
