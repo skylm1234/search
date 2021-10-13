@@ -52,7 +52,7 @@ public class HotSearchServiceImpl implements HotSearchService {
             //新增话题是否需要置顶
             if (hotSearchDTO.getStick()){
                 //需要则将之前置顶的话题放置对应位置
-                getStickHotSearch();
+                getStickHotSearch(hotSearchDTO.getRanking());
             } else {
                 //不需要则将新增话题排名后的依次顺延
                 updateReduceRanking(hotSearchDTO.getRanking(), HotSearchIndexConstant.MAX_RANKING);
@@ -82,8 +82,7 @@ public class HotSearchServiceImpl implements HotSearchService {
             Document document = Document.create();
             if (Objects.nonNull(hotSearchDTO.getStick())) {
                 if (hotSearchDTO.getStick()) {
-                    getStickHotSearch();
-                    updateIncreaseRanking(hotSearchDTO.getRanking(), HotSearchIndexConstant.MAX_RANKING);
+                    getStickHotSearch(hotSearchDTO.getRanking());
                 } else {
                     updateReduceRanking(hotSearchDTO.getRanking(), HotSearchIndexConstant.MAX_RANKING);
                 }
@@ -147,9 +146,7 @@ public class HotSearchServiceImpl implements HotSearchService {
     @Override
     public Boolean stickHotSearch(HotSearchStickDTO hotSearchStickDTO) {
         try {
-            getStickHotSearch();
-            //将置顶话题置顶
-            updateIncreaseRanking(hotSearchStickDTO.getRanking(), HotSearchIndexConstant.MAX_RANKING);
+            getStickHotSearch(hotSearchStickDTO.getRanking());
             Document document = Document.create();
             document.putIfAbsent(HotSearchIndexConstant.FIELD_STICK, true);
             document.putIfAbsent(HotSearchIndexConstant.FIELD_RANKING, hotSearchStickDTO.getRanking());
@@ -166,7 +163,7 @@ public class HotSearchServiceImpl implements HotSearchService {
     /**
      * 查询是否存在置顶话题，若存在就放置于对应排名处
      */
-    private void getStickHotSearch() {
+    private void getStickHotSearch(Integer ranking) {
         //查询是否存在置顶话题
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_DELETED, false));
@@ -176,13 +173,16 @@ public class HotSearchServiceImpl implements HotSearchService {
                 .build();
         SearchHits<HotSearchIndex> search = elasticsearchRestTemplate.search(searchQuery, HotSearchIndex.class);
         if (search.getTotalHits() > 0) {
-            //存在置顶话题将之前的置顶话题放回对应排名处
-            HotSearchIndex content = search.getSearchHit(0).getContent();
-            HotSearchUpdateDTO hotSearchDTO = new HotSearchUpdateDTO();
-            hotSearchDTO.setRanking(content.getRanking());
-            hotSearchDTO.setStick(false);
-            hotSearchDTO.setId(content.getId());
-            updateHotSearch(hotSearchDTO);
+            if (search.getSearchHit(0).getContent().getRanking() < ranking) {
+                updateReduceRanking(ranking, search.getSearchHit(0).getContent().getRanking());
+            } else {
+                updateIncreaseRanking(search.getSearchHit(0).getContent().getRanking(), ranking);
+            }
+            Document document = Document.create();
+            document.putIfAbsent(HotSearchIndexConstant.FIELD_STICK, false);
+            document.setId(search.getSearchHit(0).getContent().getId());
+            UpdateQuery build = UpdateQuery.builder(search.getSearchHit(0).getContent().getId()).withDocument(document).withScriptedUpsert(true).build();
+            elasticsearchRestTemplate.update(build, IndexCoordinates.of(HotSearchIndexConstant.INDEX_NAME));
         }
     }
 
@@ -240,26 +240,39 @@ public class HotSearchServiceImpl implements HotSearchService {
         boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_RANKING, ranking));
         boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_STICK, false));
         boolQueryBuilder.must(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_DELETED, false));
+        boolQueryBuilder.must(QueryBuilders.rangeQuery(HotSearchIndexConstant.FIELD_RANKING).gt(ranking).lte(ending));
         NativeSearchQuery searchQuery = new NativeSearchQuery(boolQueryBuilder);
         SearchHits<HotSearchIndex> search = elasticsearchRestTemplate.search(searchQuery, HotSearchIndex.class);
 
         //判断是否有数据
         if (search.getTotalHits() > 0){
-            HotSearchIndex content = search.getSearchHit(0).getContent();
-            //排名是否为50
-            if (Objects.equals(content.getRanking(), HotSearchIndexConstant.MAX_RANKING)){
-                deleteTopic(HotSearchIndexConstant.FIELD_DELETED, content.getId());
+            Integer[] rankings = search.stream().map(SearchHit::getContent).map(HotSearchIndex::getRanking).toArray(Integer[]::new);
+            int index = 0;
+            for (int i = 0; i < rankings.length - 1; i++) {
+                if (Objects.equals(rankings[i] + 1, rankings[i + 1])){
+                    index = i;
+                    break;
+                }
             }
-            //排名是否为ending
-            if (!Objects.equals(content.getRanking() + 1,ending)){
-                updateReduceRanking(content.getRanking() + 1, ending);
+            List<HotSearchIndex> contents = search.stream().map(SearchHit::getContent).collect(Collectors.toList()).subList(0, index);
+
+            if (contents.size() > 0) {
+                List<UpdateQuery> updateQueryList = new ArrayList<>(contents.size());
+                contents.forEach(hotSearchIndex -> {
+                    if (Objects.equals(hotSearchIndex.getRanking(), HotSearchIndexConstant.MAX_RANKING)){
+                        deleteTopic(HotSearchIndexConstant.FIELD_DELETED, hotSearchIndex.getId());
+                    } else {
+                        Document document = Document.create();
+                        document.putIfAbsent(HotSearchIndexConstant.FIELD_RANKING, hotSearchIndex.getRanking() + 1);
+                        document.setId(hotSearchIndex.getId());
+                        UpdateQuery build = UpdateQuery.builder(hotSearchIndex.getId()).withDocument(document).withScriptedUpsert(true).build();
+                        updateQueryList.add(build);
+                    }
+                });
+
+                //将排名后移一位
+                elasticsearchRestTemplate.bulkUpdate(updateQueryList, IndexCoordinates.of(HotSearchIndexConstant.INDEX_NAME));
             }
-            //将排名后移一位
-            Document document = Document.create();
-            document.putIfAbsent(HotSearchIndexConstant.FIELD_RANKING, content.getRanking() + 1);
-            document.setId(content.getId());
-            UpdateQuery build = UpdateQuery.builder(content.getId()).withDocument(document) .withScriptedUpsert(true) .build();
-            elasticsearchRestTemplate .update(build, IndexCoordinates.of(HotSearchIndexConstant.INDEX_NAME));
         }
 
 
