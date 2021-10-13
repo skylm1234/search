@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
-import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
@@ -126,11 +125,8 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
         }
 
         NativeSearchQuery nativeSearchQuery = new NativeSearchQueryBuilder()
-                // 模糊查询
-                .withQuery(QueryBuilders.fuzzyQuery(UserVideoIndexConstant.FIELD_VIDEO_TITLE, userSearchDTO.getKeywork()))
-                .withQuery(QueryBuilders.fuzzyQuery(UserVideoIndexConstant.FIELD_VIDEO_INTRODUCE, userSearchDTO.getKeywork()))
-                .withQuery(QueryBuilders.termQuery(UserVideoIndexConstant.CREATE_USER_ID, ObjectUtils.isEmpty(userSearchDTO.getLookUserId()) ? geJianUser.getId()
-                        : userSearchDTO.getLookUserId()))
+                .withFilter(QueryBuilders.termQuery(UserVideoIndexConstant.CREATE_USER_ID, ObjectUtils.isEmpty(userSearchDTO.getLookUserId()) ? geJianUser.getId() : userSearchDTO.getLookUserId()))
+                .withQuery(QueryBuilders.multiMatchQuery(userSearchDTO.getKeywork(),UserVideoIndexConstant.FIELD_VIDEO_TITLE,UserVideoIndexConstant.FIELD_VIDEO_INTRODUCE).analyzer(BasicConstant.IK_SMART))
                 // 分页
                 .withPageable(PageRequest.of((userSearchDTO.getCurrent() - 1), userSearchDTO.getSize()))
                 .build();
@@ -139,8 +135,7 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
             return new ArrayList<>();
         }
 
-        List<Long> videoIds = searchHits.stream().map(SearchHit::getContent).collect(Collectors.toList()).stream().map(UserVideoIndex::getId).collect(Collectors.toList());
-
+        List<Long> videoIds = searchHits.stream().map(searchHit -> searchHit.getContent().getId()).collect(Collectors.toList());
         AppUserSearchVideoDTO appUserSearchVideoDTO = new AppUserSearchVideoDTO();
         appUserSearchVideoDTO.setVideoIds(videoIds);
 
