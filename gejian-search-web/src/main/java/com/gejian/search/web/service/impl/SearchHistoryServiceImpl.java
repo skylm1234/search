@@ -1,5 +1,6 @@
 package com.gejian.search.web.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gejian.search.common.constant.BasicConstant;
 import com.gejian.search.common.constant.SearchHistoryIndexConstant;
@@ -8,6 +9,7 @@ import com.gejian.search.common.dto.HistorySearchBackendResultDTO;
 import com.gejian.search.common.dto.PopularSearchBackendQueryDTO;
 import com.gejian.search.common.dto.PopularSearchBackendResultDTO;
 import com.gejian.search.common.index.SearchHistoryIndex;
+import com.gejian.search.web.service.HotSearchService;
 import com.gejian.search.web.service.SearchHistoryService;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -35,6 +37,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -47,6 +50,9 @@ public class SearchHistoryServiceImpl implements SearchHistoryService {
 
     @Autowired
     private ElasticsearchRestTemplate elasticsearchRestTemplate;
+
+    @Autowired
+    private HotSearchService hotSearchService;
 
     @Override
     public void insert(String content) {
@@ -84,10 +90,11 @@ public class SearchHistoryServiceImpl implements SearchHistoryService {
             }
             int rankOrder = (popularBackendSearchDTO.getCurrent() - 1) * popularBackendSearchDTO.getSize();
             List<PopularSearchBackendResultDTO> popularBackendResultDTOList = new ArrayList<>();
+            Set<String> associatedWords = hotSearchService.findAll().stream().flatMap(hotSearchIndex -> StrUtil.split(hotSearchIndex.getAssociatedWord(), "，").stream()).collect(Collectors.toSet());
             for(int i = 0; i < sub.size(); i++){
                 Terms.Bucket bucket = sub.get(i);
                 PopularSearchBackendResultDTO popularSearchBackendResultDTO = PopularSearchBackendResultDTO.builder().keyword(bucket.getKeyAsString())
-                        .count(bucket.getDocCount()).rank(rankOrder + i + 1).build();
+                        .count(bucket.getDocCount()).rank(rankOrder + i + 1).ranked(associatedWords.contains(bucket.getKeyAsString())).build();
                 popularBackendResultDTOList.add(popularSearchBackendResultDTO);
             }
             return new Page<PopularSearchBackendResultDTO>(popularBackendSearchDTO.getCurrent(), popularBackendSearchDTO.getSize(), buckets.size()).setRecords(popularBackendResultDTOList);
@@ -153,5 +160,4 @@ public class SearchHistoryServiceImpl implements SearchHistoryService {
         PageRequest pageRequest = PageRequest.of((historySearchBackendQueryDTO.getCurrent() - 1), historySearchBackendQueryDTO.getSize());
         return pageRequest.withSort(Sort.Direction.DESC, SearchHistoryIndexConstant.FIELD_CREATE_TIME);
     }
-
 }

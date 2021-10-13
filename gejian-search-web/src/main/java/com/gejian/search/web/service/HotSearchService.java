@@ -2,6 +2,7 @@ package com.gejian.search.web.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.gejian.search.common.dto.*;
+import com.gejian.search.common.index.HotSearchIndex;
 
 import java.util.List;
 
@@ -48,4 +49,6 @@ public interface HotSearchService {
      * @return
      */
     List<String> getHotSearchList(Integer size);
+
+    List<HotSearchIndex> findAll();
 }
