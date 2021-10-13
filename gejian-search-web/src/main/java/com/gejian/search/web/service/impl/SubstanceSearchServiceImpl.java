@@ -14,8 +14,8 @@ import com.gejian.search.common.enums.SearchTypeEnum;
 import com.gejian.search.common.index.SubstanceOnlineIndex;
 import com.gejian.search.common.index.UserVideoIndex;
 import com.gejian.search.web.executor.AsyncExecutor;
-import com.gejian.search.web.service.SearchHistoryService;
 import com.gejian.search.web.service.RedisSearchService;
+import com.gejian.search.web.service.SearchHistoryService;
 import com.gejian.search.web.service.SubstanceSearchService;
 import com.gejian.substance.client.dto.video.UserSearchVideoViewDTO;
 import com.gejian.substance.client.dto.video.app.AppUserSearchVideoDTO;
@@ -34,7 +34,6 @@ import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -112,16 +111,12 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
         if (searchHits.getTotalHits() <= 0 ) {
             return new Page<>();
         }
-        List<SubstanceOnlineIndex> contents = searchHits.stream().map(SearchHit::getContent).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(contents)) {
-            return new Page<>();
-        }
-        List<SubstanceOnlineResponseDTO> responseDTOS = contents.stream().map(substanceOnlineIndex -> {
+        List<SubstanceOnlineResponseDTO> responseList = searchHits.stream().map(searchHit -> {
             SubstanceOnlineResponseDTO substanceOnlineResponseDTO = new SubstanceOnlineResponseDTO();
-            BeanUtils.copyProperties(substanceOnlineIndex, substanceOnlineResponseDTO);
+            BeanUtils.copyProperties(searchHit.getContent(), substanceOnlineResponseDTO);
             return substanceOnlineResponseDTO;
         }).collect(Collectors.toList());
-        return new Page<SubstanceOnlineResponseDTO>(substanceSearchDTO.getCurrent(), substanceSearchDTO.getSize(), searchHits.getTotalHits()).setRecords(responseDTOS);
+        return new Page<SubstanceOnlineResponseDTO>(substanceSearchDTO.getCurrent(), substanceSearchDTO.getSize(), searchHits.getTotalHits()).setRecords(responseList);
     }
 
     @Override
