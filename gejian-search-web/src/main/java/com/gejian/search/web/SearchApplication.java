@@ -8,16 +8,19 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+/**
+ * @author zhouqiang
+ */
 @EnablePigSwagger2
 @EnableGeJianResourceServer
 @EnablePigFeignClients
 @EnableDiscoveryClient
 @SpringBootApplication
 @EnableScheduling
-public class GeJianSearchApplication {
+public class SearchApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(GeJianSearchApplication.class, args);
+		SpringApplication.run(SearchApplication.class, args);
 	}
 
 

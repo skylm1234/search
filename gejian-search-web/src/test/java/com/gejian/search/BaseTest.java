@@ -1,6 +1,6 @@
 package com.gejian.search;
 
-import com.gejian.search.web.GeJianSearchApplication;
+import com.gejian.search.web.SearchApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 
 /**
@@ -10,6 +10,6 @@ import org.springframework.boot.test.context.SpringBootTest;
  */
 
 
-@SpringBootTest(classes = GeJianSearchApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = SearchApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class BaseTest {
 }
