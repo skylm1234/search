@@ -269,6 +269,9 @@ public class HotSearchServiceImpl implements HotSearchService {
         //判断是否有数据
         if (search.getTotalHits() > 0){
             int[] rankings = search.stream().map(SearchHit::getContent).mapToInt(HotSearchIndex::getRanking).toArray();
+            if (rankings[0] != ranking){
+                return;
+            }
             int index = 1;
             for (int i = 1; i < rankings.length ; i++) {
                 if (rankings[i] - 1 != rankings[i - 1]){
