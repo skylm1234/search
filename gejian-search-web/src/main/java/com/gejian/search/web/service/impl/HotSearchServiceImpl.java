@@ -84,7 +84,7 @@ public class HotSearchServiceImpl implements HotSearchService {
                 if (hotSearchDTO.getStick()) {
                     getStickHotSearch(search.getRanking(), false);
                 } else {
-                    updateReduceRanking(search.getRanking(), HotSearchIndexConstant.MAX_RANKING);
+                    updateReduceRanking(hotSearchDTO.getRanking(), HotSearchIndexConstant.MAX_RANKING);
                 }
                 document.putIfAbsent(HotSearchIndexConstant.FIELD_STICK, hotSearchDTO.getStick());
             } else if (Objects.nonNull(hotSearchDTO.getRanking()) && !search.getStick()) {
