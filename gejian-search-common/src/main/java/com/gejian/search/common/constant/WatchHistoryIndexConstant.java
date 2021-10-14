@@ -39,6 +39,9 @@ public interface WatchHistoryIndexConstant {
 
     String FIELD_HISTORY_ID = "history_id";
 
+    /** 观看毫秒数 **/
+    String  FIELD_SEEN_MS = "seen_ms";
+
     /** * 创建时间 */
     String FIELD_CREATE_TIME = "create_time";
 
