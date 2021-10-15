@@ -24,6 +24,7 @@ import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_HISTORY_ID;
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_RECORD_TYPE;
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_ROOM_ID;
+import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_SEEN_MS;
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_SUBSTANCE_ID;
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_TITLE;
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_TYPE;
@@ -74,6 +75,9 @@ public class WatchHistoryIndex {
 
     @Field(type = FieldType.Keyword,name = FIELD_COVER_BUCKET_NAME)
     private String coverBucketName;
+
+    @Field(type = FieldType.Long,name = FIELD_SEEN_MS)
+    private Long seenMs;
 
     @Field(type = FieldType.Date,name = FIELD_CREATE_TIME,format = { DateFormat.date_time_no_millis, DateFormat.epoch_millis,DateFormat.epoch_second })
     private LocalDateTime createTime;

@@ -81,7 +81,7 @@ public class WatchHistoryServiceImpl implements WatchHistoryService {
         if(searchHits.isEmpty()){
             return new Page<>();
         }
-        List<WatchHistoryResponseDTO> watchHistoryResponseDTOs = searchHits.stream().map(hit -> {
+        List<WatchHistoryResponseDTO> watchHistoryResponse = searchHits.stream().map(hit -> {
             WatchHistoryIndex watchHistoryIndex = hit.getContent();
             WatchHistoryResponseDTO watchHistoryResponseDTO = new WatchHistoryResponseDTO();
             watchHistoryResponseDTO.setCoverFileName(watchHistoryIndex.getCoverFileName());
@@ -95,9 +95,10 @@ public class WatchHistoryServiceImpl implements WatchHistoryService {
             watchHistoryResponseDTO.setHistoryId(watchHistoryIndex.getHistoryId());
             watchHistoryResponseDTO.setWatchedAt(watchHistoryIndex.getCreateTime());
             watchHistoryResponseDTO.setType(watchHistoryIndex.getType());
+            watchHistoryResponseDTO.setSeenMs(watchHistoryIndex.getSeenMs());
             return watchHistoryResponseDTO;
         }).collect(Collectors.toList());
-        return new Page<WatchHistoryResponseDTO>(watchHistoryQueryDTO.getCurrent(),watchHistoryQueryDTO.getSize(),searchHits.getTotalHits()).setRecords(watchHistoryResponseDTOs);
+        return new Page<WatchHistoryResponseDTO>(watchHistoryQueryDTO.getCurrent(),watchHistoryQueryDTO.getSize(),searchHits.getTotalHits()).setRecords(watchHistoryResponse);
     }
 
     @Override

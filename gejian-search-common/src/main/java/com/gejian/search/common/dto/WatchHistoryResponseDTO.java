@@ -63,4 +63,7 @@ public class WatchHistoryResponseDTO {
 
     @ApiModelProperty("是否开播；0：未开播，1：已开播")
     private Integer streamStatus;
+
+    @ApiModelProperty("观看毫秒数")
+    private Long seenMs;
 }
