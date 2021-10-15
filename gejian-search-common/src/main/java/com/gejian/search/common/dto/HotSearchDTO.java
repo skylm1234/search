@@ -24,7 +24,7 @@ public class HotSearchDTO implements Serializable {
     private String content;
 
     @ApiModelProperty("关联词段")
-    private String associatedWord;
+    private String[] associatedWord;
 
     @ApiModelProperty("标识   0-无，1-热，2-新，3-荐，4-商")
     @NotNull(message = "标识不能为空")

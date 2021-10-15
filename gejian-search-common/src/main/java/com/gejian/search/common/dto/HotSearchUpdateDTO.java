@@ -26,7 +26,7 @@ public class HotSearchUpdateDTO implements Serializable {
     private String content;
 
     @ApiModelProperty("关联词段")
-    private String associatedWord;
+    private String[] associatedWord;
 
     @ApiModelProperty("标识")
     private Integer  marking;

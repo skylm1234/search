@@ -38,7 +38,7 @@ public class HotSearchIndex {
     private String content;
 
     @Field(type = FieldType.Text,name = FIELD_ASSOCIATED_WORD)
-    private String associatedWord;
+    private String[] associatedWord;
 
     @Field(type = FieldType.Text,name = FIELD_MARKING)
     private String marking;
