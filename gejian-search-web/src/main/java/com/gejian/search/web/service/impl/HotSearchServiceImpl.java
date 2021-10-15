@@ -124,7 +124,7 @@ public class HotSearchServiceImpl implements HotSearchService {
             if (!hotSearchDeleteDTO.getStick()) {
                 updateIncreaseRanking(hotSearchDeleteDTO.getRanking(), HotSearchIndexConstant.MAX_RANKING);
             }
-            deleteTopic(HotSearchIndexConstant.FIELD_DELETED, hotSearchDeleteDTO.getId());
+            deleteTopic(hotSearchDeleteDTO.getId());
             return true;
         } catch (Exception e){
             log.error(hotSearchDeleteDTO.getId() + "热搜删除失败！", e);
@@ -134,12 +134,11 @@ public class HotSearchServiceImpl implements HotSearchService {
 
     /**
      * 删除话题
-     * @param fieldDeleted
-     * @param id
+     * @param id 话题id
      */
-    private void deleteTopic(String fieldDeleted, String id) {
+    private void deleteTopic(String id) {
         Document document = Document.create();
-        document.putIfAbsent(fieldDeleted, true);
+        document.putIfAbsent(HotSearchIndexConstant.FIELD_DELETED, true);
         document.putIfAbsent(HotSearchIndexConstant.FIELD_UPDATE_TIME, LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(8)));
         document.setId(id);
         UpdateQuery build = UpdateQuery.builder(id).withDocument(document).withScriptedUpsert(true).build();
@@ -166,8 +165,8 @@ public class HotSearchServiceImpl implements HotSearchService {
 
     /**
      * 查询是否存在置顶话题，若存在就放置于对应排名处,并修改排名
-     * @param ranking
-     * @param isSave
+     * @param ranking  新置顶话题排名
+     * @param isSave   是否是新增操作
      */
     private void getStickHotSearch(Integer ranking, Boolean isSave) {
         //查询是否存在置顶话题
@@ -258,7 +257,8 @@ public class HotSearchServiceImpl implements HotSearchService {
 
     /**
      * 将排名低于等于ranking的话题排名依次降低一位
-     * @param ranking
+     * @param ranking  顺移起始位置
+     * @param ending   顺移最终位置
      */
     private void updateReduceRanking(Integer ranking, Integer ending){
         if (Objects.isNull(ranking) || Objects.isNull(ending)){
@@ -268,7 +268,7 @@ public class HotSearchServiceImpl implements HotSearchService {
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         boolQueryBuilder.filter(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_STICK, false));
         boolQueryBuilder.filter(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_DELETED, false));
-        boolQueryBuilder.must(QueryBuilders.rangeQuery(HotSearchIndexConstant.FIELD_RANKING).gte(ranking).lt(ending));
+        boolQueryBuilder.filter(QueryBuilders.rangeQuery(HotSearchIndexConstant.FIELD_RANKING).gte(ranking).lt(ending));
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(boolQueryBuilder)
                 .withSort(SortBuilders.fieldSort(HotSearchIndexConstant.FIELD_RANKING).order(SortOrder.ASC))
@@ -294,7 +294,7 @@ public class HotSearchServiceImpl implements HotSearchService {
                 List<UpdateQuery> updateQueryList = new ArrayList<>(contents.size());
                 contents.forEach(hotSearchIndex -> {
                     if (Objects.equals(hotSearchIndex.getRanking(), HotSearchIndexConstant.MAX_RANKING)){
-                        deleteTopic(HotSearchIndexConstant.FIELD_DELETED, hotSearchIndex.getId());
+                        deleteTopic(hotSearchIndex.getId());
                     } else {
                         Document document = Document.create();
                         document.putIfAbsent(HotSearchIndexConstant.FIELD_UPDATE_TIME, LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(8)));
@@ -315,7 +315,8 @@ public class HotSearchServiceImpl implements HotSearchService {
 
     /**
      * 将排名低于ranking的话题排名依次提升一位
-     * @param ranking
+     * @param ranking  顺移起始位置
+     * @param ending   顺移最终位置
      */
     private void updateIncreaseRanking(Integer ranking, Integer ending){
         if (Objects.isNull(ranking) || Objects.isNull(ending)){
@@ -324,7 +325,7 @@ public class HotSearchServiceImpl implements HotSearchService {
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         boolQueryBuilder.filter(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_DELETED, false));
         boolQueryBuilder.filter(QueryBuilders.termQuery(HotSearchIndexConstant.FIELD_STICK, false));
-        boolQueryBuilder.must(QueryBuilders.rangeQuery(HotSearchIndexConstant.FIELD_RANKING).gt(ranking).lte(ending));
+        boolQueryBuilder.filter(QueryBuilders.rangeQuery(HotSearchIndexConstant.FIELD_RANKING).gt(ranking).lte(ending));
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                 .withQuery(boolQueryBuilder)
                 .withSort(SortBuilders.fieldSort(HotSearchIndexConstant.FIELD_RANKING).order(SortOrder.ASC))
