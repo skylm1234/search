@@ -136,6 +136,8 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
         List<Long> videoIds = searchHits.stream().map(searchHit -> searchHit.getContent().getId()).collect(Collectors.toList());
         AppUserSearchVideoDTO appUserSearchVideoDTO = new AppUserSearchVideoDTO();
         appUserSearchVideoDTO.setVideoIds(videoIds);
+        appUserSearchVideoDTO.setCurrent(userSearchDTO.getCurrent());
+        appUserSearchVideoDTO.setSize(userSearchDTO.getSize());
         return remoteSubstanceService.searchUserVideo(appUserSearchVideoDTO, SecurityConstants.FROM_IN).getData();
     }
 
