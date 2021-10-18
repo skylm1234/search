@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_CLASSIFY_ID;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_CREATE_USER_NICKNAME;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_DELETED;
+import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_FAILURE;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_VIDEO_INTRODUCE;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_VIDEO_LENGTH;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_VIDEO_TITLE;
@@ -102,6 +103,7 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
             innerBoolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_CLASSIFY_ID, substanceSearchDTO.getClassifyId()));
         }
         innerBoolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_DELETED, false));
+        innerBoolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_FAILURE,false));
         MatchPhraseQueryBuilder phraseQueryBuilder = new MatchPhraseQueryBuilder(FIELD_VIDEO_TITLE,substanceSearchDTO.getContent());
         boolQueryBuilder.should(innerBoolQueryBuilder).should(phraseQueryBuilder);
         NativeSearchQuery nativeSearchQuery = new NativeSearchQuery(boolQueryBuilder);
