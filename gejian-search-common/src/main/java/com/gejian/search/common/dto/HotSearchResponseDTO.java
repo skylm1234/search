@@ -26,7 +26,7 @@ public class HotSearchResponseDTO implements Serializable {
     private String content;
 
     @ApiModelProperty("关联词段")
-    private String associatedWord;
+    private String[] associatedWord;
 
     @ApiModelProperty("标识名字")
     private String marking;

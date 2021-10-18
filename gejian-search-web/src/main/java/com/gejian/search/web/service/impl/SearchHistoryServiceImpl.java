@@ -34,10 +34,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -90,7 +87,7 @@ public class SearchHistoryServiceImpl implements SearchHistoryService {
             }
             int rankOrder = (popularBackendSearchDTO.getCurrent() - 1) * popularBackendSearchDTO.getSize();
             List<PopularSearchBackendResultDTO> popularBackendResultDTOList = new ArrayList<>();
-            Set<String> associatedWords = hotSearchService.findAll().stream().flatMap(hotSearchIndex -> StrUtil.split(hotSearchIndex.getAssociatedWord(), "，").stream()).collect(Collectors.toSet());
+            Set<String> associatedWords = hotSearchService.findAll().stream().flatMap(hotSearchIndex -> Arrays.stream(hotSearchIndex.getAssociatedWord())).collect(Collectors.toSet());
             for(int i = 0; i < sub.size(); i++){
                 Terms.Bucket bucket = sub.get(i);
                 PopularSearchBackendResultDTO popularSearchBackendResultDTO = PopularSearchBackendResultDTO.builder().keyword(bucket.getKeyAsString())
