@@ -103,14 +103,14 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
             innerBoolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_CLASSIFY_ID, substanceSearchDTO.getClassifyId()));
         }
         innerBoolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_DELETED, false));
-        innerBoolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_FAILURE,false));
-        MatchPhraseQueryBuilder phraseQueryBuilder = new MatchPhraseQueryBuilder(FIELD_VIDEO_TITLE,substanceSearchDTO.getContent());
+        innerBoolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_FAILURE, false));
+        MatchPhraseQueryBuilder phraseQueryBuilder = new MatchPhraseQueryBuilder(FIELD_VIDEO_TITLE, substanceSearchDTO.getContent());
         boolQueryBuilder.should(innerBoolQueryBuilder).should(phraseQueryBuilder);
         NativeSearchQuery nativeSearchQuery = new NativeSearchQuery(boolQueryBuilder);
         PageRequest pageRequest = page(substanceSearchDTO);
         nativeSearchQuery.setPageable(pageRequest);
         SearchHits<SubstanceOnlineIndex> searchHits = elasticsearchRestTemplate.search(nativeSearchQuery, SubstanceOnlineIndex.class);
-        if (searchHits.getTotalHits() <= 0 ) {
+        if (searchHits.getTotalHits() <= 0) {
             return new Page<>();
         }
         List<SubstanceOnlineResponseDTO> responseList = searchHits.stream().map(searchHit -> {
@@ -125,8 +125,8 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
     public List<UserSearchVideoViewDTO> searchUserVideo(UserSearchDTO userSearchDTO, GeJianUser geJianUser) {
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         boolQueryBuilder.filter(QueryBuilders.termQuery(UserVideoIndexConstant.CREATE_USER_ID, ObjectUtils.isEmpty(userSearchDTO.getLookUserId()) ? geJianUser.getId() : userSearchDTO.getLookUserId()));
-        if(StrUtil.isNotBlank(userSearchDTO.getKeywork())){
-            boolQueryBuilder.must(QueryBuilders.multiMatchQuery(userSearchDTO.getKeywork(),UserVideoIndexConstant.FIELD_VIDEO_TITLE,UserVideoIndexConstant.FIELD_VIDEO_INTRODUCE).analyzer(BasicConstant.IK_SMART));
+        if (StrUtil.isNotBlank(userSearchDTO.getKeywork())) {
+            boolQueryBuilder.must(QueryBuilders.multiMatchQuery(userSearchDTO.getKeywork(), UserVideoIndexConstant.FIELD_VIDEO_TITLE, UserVideoIndexConstant.FIELD_VIDEO_INTRODUCE).analyzer(BasicConstant.IK_SMART));
         }
         NativeSearchQuery nativeSearchQuery = new NativeSearchQueryBuilder()
                 .withQuery(boolQueryBuilder)
@@ -152,7 +152,7 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
             substanceSearchDTO.setSize(10);
         }
 
-        PageRequest pageRequest = PageRequest.of((substanceSearchDTO.getCurrent() - 1) , substanceSearchDTO.getSize());
+        PageRequest pageRequest = PageRequest.of((substanceSearchDTO.getCurrent() - 1), substanceSearchDTO.getSize());
         if (substanceSearchDTO.getOrderField() != null) {
             Optional<String> fieldMapping = substanceSearchDTO.getOrderField().fieldMapping();
             if (fieldMapping.isPresent()) {
