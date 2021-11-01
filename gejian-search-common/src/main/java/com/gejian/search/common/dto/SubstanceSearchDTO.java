@@ -2,6 +2,7 @@ package com.gejian.search.common.dto;
 
 import com.gejian.search.common.enums.SearchOrderFieldsEnum;
 import com.gejian.search.common.enums.SearchTypeEnum;
+import com.gejian.search.common.enums.SubstanceWatchLevelEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -32,6 +33,9 @@ public class SubstanceSearchDTO {
 
 	@ApiModelProperty(value = "排序字段,DEFAULT(默认)，NEWEST(最新)，PLAY_MOST(播放)，COMMENT_MOST(评论)，BULLET_MOST(弹幕)，COLLECT_MOST(收藏)，FORWARD_MOST(转发)")
 	private SearchOrderFieldsEnum orderField;
+
+	@ApiModelProperty(value = "观看等级",allowableValues = "FREE:免费,LIMIT_FREE:限免,VIP:会员,CHARGE:收费")
+	private SubstanceWatchLevelEnum watchLevel;
 
 	@ApiModelProperty(value = "当前页，默认为1", name = "current")
 	private Integer current;

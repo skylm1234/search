@@ -49,6 +49,7 @@ import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIE
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_VIDEO_INTRODUCE;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_VIDEO_LENGTH;
 import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_VIDEO_TITLE;
+import static com.gejian.search.common.constant.SubstanceOnlineIndexConstant.FIELD_WATCH_LEVEL;
 
 /**
  * @author ：lijianghuai
@@ -101,6 +102,9 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
         }
         if (substanceSearchDTO.getClassifyId() != null) {
             innerBoolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_CLASSIFY_ID, substanceSearchDTO.getClassifyId()));
+        }
+        if(substanceSearchDTO.getWatchLevel() != null){
+            innerBoolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_WATCH_LEVEL, substanceSearchDTO.getWatchLevel().getName().toLowerCase()));
         }
         innerBoolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_DELETED, false));
         innerBoolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_FAILURE,false));
