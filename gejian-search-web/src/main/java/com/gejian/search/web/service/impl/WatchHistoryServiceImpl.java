@@ -74,7 +74,7 @@ public class WatchHistoryServiceImpl implements WatchHistoryService {
         if(StringUtils.isNotBlank(watchHistoryQueryDTO.getTitle())){
             boolQueryBuilder.must(QueryBuilders.matchQuery(WatchHistoryIndexConstant.FIELD_TITLE,watchHistoryQueryDTO.getTitle()));
         }
-        PageRequest pageRequest = PageRequest.of((watchHistoryQueryDTO.getCurrent() - 1) , watchHistoryQueryDTO.getSize(),Sort.by(Sort.Direction.DESC,WatchHistoryIndexConstant.FIELD_CREATE_TIME));
+        PageRequest pageRequest = PageRequest.of((watchHistoryQueryDTO.getCurrent() - 1) , watchHistoryQueryDTO.getSize(),Sort.by(Sort.Direction.DESC,WatchHistoryIndexConstant.FIELD_UPDATE_TIME));
         NativeSearchQuery nativeSearchQuery = new NativeSearchQuery(boolQueryBuilder);
         nativeSearchQuery.setPageable(pageRequest);
         SearchHits<WatchHistoryIndex> searchHits =  elasticsearchRestTemplate.search(nativeSearchQuery, WatchHistoryIndex.class);
@@ -93,7 +93,7 @@ public class WatchHistoryServiceImpl implements WatchHistoryService {
             watchHistoryResponseDTO.setTitle(watchHistoryIndex.getTitle());
             watchHistoryResponseDTO.setSubstanceId(watchHistoryIndex.getSubstanceId());
             watchHistoryResponseDTO.setHistoryId(watchHistoryIndex.getHistoryId());
-            watchHistoryResponseDTO.setWatchedAt(watchHistoryIndex.getCreateTime());
+            watchHistoryResponseDTO.setWatchedAt(watchHistoryIndex.getUpdateTime());
             watchHistoryResponseDTO.setType(watchHistoryIndex.getType());
             watchHistoryResponseDTO.setSeenMs(watchHistoryIndex.getSeenMs());
             return watchHistoryResponseDTO;

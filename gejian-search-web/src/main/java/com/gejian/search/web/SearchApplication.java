@@ -19,11 +19,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class SearchApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(SearchApplication.class, args);
-	}
-
-
+    public static void main(String[] args) {
+        SpringApplication.run(SearchApplication.class, args);
+    }
 
 
 }
