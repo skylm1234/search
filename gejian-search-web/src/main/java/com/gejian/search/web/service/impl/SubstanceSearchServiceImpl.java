@@ -86,30 +86,32 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
         }
         AsyncExecutor.execute(() -> redisSearchService.setHistorySearch(substanceSearchDTO.getContent()));
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
-        BoolQueryBuilder innerBoolQueryBuilder = new BoolQueryBuilder();
+        BoolQueryBuilder searchBoolQueryBuilder = new BoolQueryBuilder();
         if (substanceSearchDTO.getSearchType() == null || substanceSearchDTO.getSearchType() == SearchTypeEnum.VIDEO) {
-            innerBoolQueryBuilder.must(QueryBuilders.multiMatchQuery(substanceSearchDTO.getContent(), FIELD_VIDEO_TITLE, FIELD_VIDEO_INTRODUCE).analyzer(BasicConstant.IK_SMART));
+            searchBoolQueryBuilder.must(QueryBuilders.multiMatchQuery(substanceSearchDTO.getContent(), FIELD_VIDEO_TITLE, FIELD_VIDEO_INTRODUCE).analyzer(BasicConstant.IK_SMART));
         } else {
-            innerBoolQueryBuilder.must(QueryBuilders.matchQuery(FIELD_CREATE_USER_NICKNAME, substanceSearchDTO.getContent()));
+            searchBoolQueryBuilder.must(QueryBuilders.matchQuery(FIELD_CREATE_USER_NICKNAME, substanceSearchDTO.getContent()));
         }
         if (substanceSearchDTO.getVideoLengthGt() != null || substanceSearchDTO.getVideoLengthLt() != null) {
             if (substanceSearchDTO.getVideoLengthGt() != null) {
-                innerBoolQueryBuilder.filter(QueryBuilders.rangeQuery(FIELD_VIDEO_LENGTH).gte(substanceSearchDTO.getVideoLengthGt() * 60 * 1000));
+                boolQueryBuilder.filter(QueryBuilders.rangeQuery(FIELD_VIDEO_LENGTH).gte(substanceSearchDTO.getVideoLengthGt() * 60 * 1000));
             }
             if (substanceSearchDTO.getVideoLengthLt() != null) {
-                innerBoolQueryBuilder.filter(QueryBuilders.rangeQuery(FIELD_VIDEO_LENGTH).lte(substanceSearchDTO.getVideoLengthLt() * 60 * 1000));
+                boolQueryBuilder.filter(QueryBuilders.rangeQuery(FIELD_VIDEO_LENGTH).lte(substanceSearchDTO.getVideoLengthLt() * 60 * 1000));
             }
         }
         if (substanceSearchDTO.getClassifyId() != null) {
-            innerBoolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_CLASSIFY_ID, substanceSearchDTO.getClassifyId()));
+            boolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_CLASSIFY_ID, substanceSearchDTO.getClassifyId()));
         }
         if(substanceSearchDTO.getWatchLevel() != null){
-            innerBoolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_WATCH_LEVEL, substanceSearchDTO.getWatchLevel().getName().toLowerCase()));
+            boolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_WATCH_LEVEL, substanceSearchDTO.getWatchLevel().getName().toLowerCase()));
         }
-        innerBoolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_DELETED, false));
-        innerBoolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_FAILURE, false));
+        boolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_DELETED, false));
+        boolQueryBuilder.filter(QueryBuilders.termQuery(FIELD_FAILURE, false));
         MatchPhraseQueryBuilder phraseQueryBuilder = new MatchPhraseQueryBuilder(FIELD_VIDEO_TITLE, substanceSearchDTO.getContent());
-        boolQueryBuilder.should(innerBoolQueryBuilder).should(phraseQueryBuilder);
+        BoolQueryBuilder shouldBoolQueryBuilder = new BoolQueryBuilder();
+        shouldBoolQueryBuilder.should(searchBoolQueryBuilder).should(phraseQueryBuilder);
+        boolQueryBuilder.must(shouldBoolQueryBuilder);
         NativeSearchQuery nativeSearchQuery = new NativeSearchQuery(boolQueryBuilder);
         PageRequest pageRequest = page(substanceSearchDTO);
         nativeSearchQuery.setPageable(pageRequest);
