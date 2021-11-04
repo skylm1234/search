@@ -35,13 +35,6 @@
 				<version>1.18.20</version>
 			</dependency>
 
-			<!--core 工具类-->
-			<dependency>
-				<groupId>com.gejian</groupId>
-				<artifactId>gejian-common-core</artifactId>
-				<version>${gejian-common-core.version}</version>
-			</dependency>
-
 		</dependencies>
 	</dependencyManagement>
 
