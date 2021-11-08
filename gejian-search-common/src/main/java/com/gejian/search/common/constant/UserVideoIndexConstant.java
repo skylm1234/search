@@ -26,4 +26,9 @@ public interface UserVideoIndexConstant {
      * 用户ID
      */
     String CREATE_USER_ID = "create_user_id";
+
+    /**
+     * 状态
+     */
+    String TYPE = "type";
 }

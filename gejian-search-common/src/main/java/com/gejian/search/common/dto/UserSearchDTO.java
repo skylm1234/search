@@ -24,6 +24,6 @@ public class UserSearchDTO extends BasePageQuery {
      * 查看的用户IDS
      */
     @ApiModelProperty(value = "查看的用户ID", required = false)
-    private String lookUserId;
+    private Long lookUserId;
 
 }

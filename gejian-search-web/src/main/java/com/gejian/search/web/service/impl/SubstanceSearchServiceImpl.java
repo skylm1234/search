@@ -21,6 +21,7 @@ import com.gejian.search.web.service.SubstanceSearchService;
 import com.gejian.substance.client.dto.video.UserSearchVideoViewDTO;
 import com.gejian.substance.client.dto.video.app.AppUserSearchVideoDTO;
 import com.gejian.substance.client.feign.RemoteSubstanceService;
+import com.gejian.substance.common.enums.SubstancePreTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchPhraseQueryBuilder;
@@ -131,6 +132,10 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
     public List<UserSearchVideoViewDTO> searchUserVideo(UserSearchDTO userSearchDTO, GeJianUser geJianUser) {
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
         boolQueryBuilder.filter(QueryBuilders.termQuery(UserVideoIndexConstant.CREATE_USER_ID, ObjectUtils.isEmpty(userSearchDTO.getLookUserId()) ? geJianUser.getId() : userSearchDTO.getLookUserId()));
+        // 查看其他人 要求是审核通过状态的视频
+        if (!geJianUser.getId().equals(userSearchDTO.getLookUserId())){
+            boolQueryBuilder.filter(QueryBuilders.termQuery(UserVideoIndexConstant.TYPE,SubstancePreTypeEnum.pass.getCode()));
+        }
         if (StrUtil.isNotBlank(userSearchDTO.getKeywork())) {
             boolQueryBuilder.must(QueryBuilders.multiMatchQuery(userSearchDTO.getKeywork(), UserVideoIndexConstant.FIELD_VIDEO_TITLE, UserVideoIndexConstant.FIELD_VIDEO_INTRODUCE).analyzer(BasicConstant.IK_SMART));
         }
