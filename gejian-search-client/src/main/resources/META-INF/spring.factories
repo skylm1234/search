@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.gejian.search.client.feign.factory.RemoteSearchServiceFallbackFactory,\
+  com.gejian.search.client.feign.fallback.RemoteSearchServiceFallbackImpl

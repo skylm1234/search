@@ -30,7 +30,7 @@ public interface SubstanceSearchService {
      * @param userSearchDTO
      * @return
      */
-    List<UserSearchVideoViewDTO> searchUserVideo(UserSearchDTO userSearchDTO, GeJianUser geJianUser);
+    List<Long> searchUserVideoByKeyword(UserSearchDTO userSearchDTO);
 
 
 }

@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author : Hyb
@@ -18,12 +19,18 @@ public class UserSearchDTO extends BasePageQuery {
      * 搜索关键词
      */
     @ApiModelProperty(value = "搜索关键词", required = false)
-    private String keywork;
+    @NotBlank
+    private String keyword;
 
     /**
      * 查看的用户IDS
      */
-    @ApiModelProperty(value = "查看的用户ID", required = false)
+    @ApiModelProperty(value = "查看的用户ID", required = true)
+    @NotNull
     private Long lookUserId;
+
+    @ApiModelProperty(value = "当前用户id",required = true)
+    @NotNull
+    private Long currentUserId;
 
 }

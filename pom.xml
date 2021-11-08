@@ -7,6 +7,7 @@
 	<version>1.0.0-SNAPSHOT</version>
 	<modules>
 		<module>gejian-search-common</module>
+		<module>gejian-search-client</module>
 		<module>gejian-search-web</module>
 	</modules>
 	<packaging>pom</packaging>

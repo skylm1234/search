@@ -129,15 +129,20 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
     }
 
     @Override
-    public List<UserSearchVideoViewDTO> searchUserVideo(UserSearchDTO userSearchDTO, GeJianUser geJianUser) {
+    public List<Long> searchUserVideoByKeyword(UserSearchDTO userSearchDTO) {
         BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
-        boolQueryBuilder.filter(QueryBuilders.termQuery(UserVideoIndexConstant.CREATE_USER_ID, ObjectUtils.isEmpty(userSearchDTO.getLookUserId()) ? geJianUser.getId() : userSearchDTO.getLookUserId()));
+        boolQueryBuilder.filter(QueryBuilders
+                .termQuery(UserVideoIndexConstant.CREATE_USER_ID, userSearchDTO.getLookUserId()));
         // 查看其他人 要求是审核通过状态的视频
-        if (!geJianUser.getId().equals(userSearchDTO.getLookUserId())){
-            boolQueryBuilder.filter(QueryBuilders.termQuery(UserVideoIndexConstant.TYPE,SubstancePreTypeEnum.pass.getCode()));
+        if (!userSearchDTO.getCurrentUserId().equals(userSearchDTO.getLookUserId())){
+            boolQueryBuilder.filter(QueryBuilders
+                    .termQuery(UserVideoIndexConstant.TYPE,SubstancePreTypeEnum.pass.getCode()));
         }
-        if (StrUtil.isNotBlank(userSearchDTO.getKeywork())) {
-            boolQueryBuilder.must(QueryBuilders.multiMatchQuery(userSearchDTO.getKeywork(), UserVideoIndexConstant.FIELD_VIDEO_TITLE, UserVideoIndexConstant.FIELD_VIDEO_INTRODUCE).analyzer(BasicConstant.IK_SMART));
+        if (StrUtil.isNotBlank(userSearchDTO.getKeyword())) {
+            boolQueryBuilder.must(QueryBuilders
+                    .multiMatchQuery(userSearchDTO.getKeyword()
+                            , UserVideoIndexConstant.FIELD_VIDEO_TITLE, UserVideoIndexConstant.FIELD_VIDEO_INTRODUCE)
+                    .analyzer(BasicConstant.IK_SMART));
         }
         NativeSearchQuery nativeSearchQuery = new NativeSearchQueryBuilder()
                 .withQuery(boolQueryBuilder)
@@ -147,10 +152,7 @@ public class SubstanceSearchServiceImpl implements SubstanceSearchService {
         if (searchHits.getTotalHits() <= 0) {
             return new ArrayList<>();
         }
-        List<Long> videoIds = searchHits.stream().map(searchHit -> searchHit.getContent().getId()).collect(Collectors.toList());
-        AppUserSearchVideoDTO appUserSearchVideoDTO = new AppUserSearchVideoDTO();
-        appUserSearchVideoDTO.setVideoIds(videoIds);
-        return remoteSubstanceService.searchUserVideo(appUserSearchVideoDTO, SecurityConstants.FROM_IN).getData();
+        return searchHits.stream().map(searchHit -> searchHit.getContent().getId()).collect(Collectors.toList());
     }
 
     private PageRequest page(SubstanceSearchDTO substanceSearchDTO) {
