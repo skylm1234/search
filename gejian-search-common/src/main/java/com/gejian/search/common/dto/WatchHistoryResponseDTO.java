@@ -48,6 +48,9 @@ public class WatchHistoryResponseDTO {
     @FileUrl
     private String coverFileUrl;
 
+    @ApiModelProperty("观看等级")
+    private String watchLevel;
+
     @ApiModelProperty("视频/直播 封面文件名")
     @ObjectName
     @JsonIgnore

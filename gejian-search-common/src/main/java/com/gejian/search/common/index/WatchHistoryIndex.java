@@ -30,6 +30,7 @@ import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_TYPE;
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_UPDATE_TIME;
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_USER_ID;
+import static com.gejian.search.common.constant.WatchHistoryIndexConstant.FIELD_WATCH_LEVEL;
 import static com.gejian.search.common.constant.WatchHistoryIndexConstant.INDEX_NAME;
 
 /**
@@ -75,6 +76,9 @@ public class WatchHistoryIndex {
 
     @Field(type = FieldType.Keyword,name = FIELD_COVER_BUCKET_NAME)
     private String coverBucketName;
+
+    @Field(type = FieldType.Keyword,name = FIELD_WATCH_LEVEL)
+    private String watchLevel;
 
     @Field(type = FieldType.Long,name = FIELD_SEEN_MS)
     private Long seenMs;

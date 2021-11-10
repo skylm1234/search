@@ -96,6 +96,7 @@ public class WatchHistoryServiceImpl implements WatchHistoryService {
             watchHistoryResponseDTO.setWatchedAt(watchHistoryIndex.getUpdateTime());
             watchHistoryResponseDTO.setType(watchHistoryIndex.getType());
             watchHistoryResponseDTO.setSeenMs(watchHistoryIndex.getSeenMs());
+            watchHistoryResponseDTO.setWatchLevel(watchHistoryIndex.getWatchLevel());
             return watchHistoryResponseDTO;
         }).collect(Collectors.toList());
         return new Page<WatchHistoryResponseDTO>(watchHistoryQueryDTO.getCurrent(),watchHistoryQueryDTO.getSize(),searchHits.getTotalHits()).setRecords(watchHistoryResponse);

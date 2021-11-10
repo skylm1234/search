@@ -35,6 +35,9 @@ public interface WatchHistoryIndexConstant {
 
     String FIELD_COVER_BUCKET_NAME = "cover_bucket_name";
 
+    String FIELD_WATCH_LEVEL = "watch_level";
+
+
     String FIELD_RECORD_TYPE = "record_type";
 
     String FIELD_HISTORY_ID = "history_id";
